@@ -25,9 +25,8 @@ def load_movies():
         df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
         df['year'] = df['release_date'].dt.year
         
-        # 2. Nettoyer les langues - garder uniquement les codes ISO valides
-        valid_languages = ['en', 'fr', 'es', 'de', 'it', 'ja', 'ko', 'zh', 'pt', 'ru', 'hi', 'ar', 'nl', 'sv', 'no', 'da', 'fi', 'pl', 'tr', 'th', 'vi']
-        df = df[df['original_language'].isin(valid_languages)]
+        # 2. Nettoyer les langues - garder uniquement français et anglais
+        df = df[df['original_language'].isin(['fr', 'en'])]
         
         # 3. Nettoyer les genres
         df['genres_x'] = df['genres_x'].astype(str)
@@ -38,10 +37,11 @@ def load_movies():
         df['averageRating'] = pd.to_numeric(df['averageRating'], errors='coerce')
         df['numVotes'] = pd.to_numeric(df['numVotes'], errors='coerce')
         
-        # 5. Filtrer les films avec poster_path valide
-        df = df[df['poster_path'].notna()]
-        df = df[df['poster_path'].str.startswith('/')]
-        df = df[df['poster_path'] != '']
+        # 5. Filtrer les films avec poster_path valide - nettoyage strict
+        df = df[df['poster_path'].notna()]  # Éliminer les NaN
+        df = df[df['poster_path'] != '']    # Éliminer les chaînes vides
+        df = df[df['poster_path'].str.len() > 1]  # Éliminer les chaînes trop courtes
+        df = df[df['poster_path'].str.startswith('/')]  # Doit commencer par /
         
         # 6. Construire l'URL complète des affiches TMDB
         df['poster_url'] = 'https://image.tmdb.org/t/p/w500' + df['poster_path']
