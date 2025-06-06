@@ -304,97 +304,21 @@ if page == "🏠 Accueil":
         # Limiter à 10 genres maximum
         final_genres = final_genres[:10]
         
-        # CSS pour les effets hover et le carousel
+        # CSS pour les effets hover
         st.markdown("""
         <style>
-        .genre-carousel {
-            margin: 30px 0;
-        }
-        .genre-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #e50914;
-        }
-        .carousel-wrapper {
-            position: relative;
-            overflow: hidden;
-        }
-        .carousel-container {
-            display: flex;
-            overflow-x: auto;
-            scroll-behavior: smooth;
-            gap: 15px;
-            padding: 10px 0 20px 0;
-            scrollbar-width: thin;
-            scrollbar-color: #666 transparent;
-        }
-        .carousel-container::-webkit-scrollbar {
-            height: 8px;
-        }
-        .carousel-container::-webkit-scrollbar-track {
-            background: #333;
-            border-radius: 10px;
-        }
-        .carousel-container::-webkit-scrollbar-thumb {
-            background: #e50914;
-            border-radius: 10px;
-        }
-        .carousel-container::-webkit-scrollbar-thumb:hover {
-            background: #f40612;
-        }
-        .movie-card {
-            flex: 0 0 auto;
-            width: 180px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        .movie-card:hover {
-            transform: scale(1.05) translateY(-10px);
-            z-index: 10;
-        }
-        .movie-poster {
-            width: 100%;
-            height: 270px;
-            object-fit: cover;
+        .movie-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
         }
-        .movie-card:hover .movie-poster {
-            box-shadow: 0 8px 30px rgba(229,9,20,0.4);
-        }
-        .movie-info {
-            padding: 8px 4px;
-            text-align: center;
-        }
-        .movie-title {
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 5px;
-            line-height: 1.2;
-            height: 34px;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-        }
-        .movie-rating {
-            font-size: 12px;
-            color: #ffd700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-        }
-        .star {
-            color: #ffd700;
+        .movie-hover:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(229,9,20,0.4);
         }
         </style>
         """, unsafe_allow_html=True)
         
-        # Afficher chaque section de genre avec carrousel
+        # Afficher chaque section de genre avec navigation horizontale
         for genre in final_genres:
             # Filtrer les films par genre
             genre_movies = df_main[df_main["genres_x"].str.contains(genre, case=False, na=False)]
@@ -403,40 +327,57 @@ if page == "🏠 Accueil":
             genre_movies = genre_movies.nlargest(15, 'averageRating')
             
             if len(genre_movies) > 0:
-                st.markdown(f'<div class="genre-carousel">', unsafe_allow_html=True)
-                st.markdown(f'<h3 class="genre-title">🎭 {genre}</h3>', unsafe_allow_html=True)
+                st.markdown(f"### 🎭 {genre}")
                 
-                # Créer le carousel HTML
-                carousel_html = '''
-                <div class="carousel-wrapper">
-                    <div class="carousel-container">
-                '''
+                # Interface de pagination pour naviguer dans les 15 films
+                if 'current_page' not in st.session_state:
+                    st.session_state.current_page = {}
+                if genre not in st.session_state.current_page:
+                    st.session_state.current_page[genre] = 0
                 
-                for idx, (_, movie) in enumerate(genre_movies.iterrows()):
-                    poster_url = movie['poster_url'] if 'poster_url' in movie and pd.notna(movie['poster_url']) else ''
-                    title = movie['title_x'].replace('"', '&quot;').replace("'", "&#39;")
-                    rating = movie['averageRating']
-                    
-                    carousel_html += f'''
-                    <div class="movie-card">
-                        <img src="{poster_url}" class="movie-poster" alt="{title}">
-                        <div class="movie-info">
-                            <div class="movie-title">{title}</div>
-                            <div class="movie-rating">
-                                <span class="star">⭐</span>
-                                <span>{rating:.1f}/10</span>
-                            </div>
-                        </div>
-                    </div>
-                    '''
+                # Calculer le nombre de pages (6 films par page)
+                films_per_page = 6
+                total_pages = (len(genre_movies) - 1) // films_per_page + 1
+                current_page = st.session_state.current_page[genre]
                 
-                carousel_html += '''
-                    </div>
-                </div>
-                '''
+                # Navigation
+                col1, col2, col3 = st.columns([1, 2, 1])
+                with col1:
+                    if st.button("⬅️ Précédent", key=f"prev_{genre}", disabled=current_page == 0):
+                        st.session_state.current_page[genre] = max(0, current_page - 1)
+                        st.rerun()
+                with col2:
+                    st.write(f"Page {current_page + 1} sur {total_pages}")
+                with col3:
+                    if st.button("Suivant ➡️", key=f"next_{genre}", disabled=current_page == total_pages - 1):
+                        st.session_state.current_page[genre] = min(total_pages - 1, current_page + 1)
+                        st.rerun()
                 
-                st.markdown(carousel_html, unsafe_allow_html=True)
-                st.markdown('</div>', unsafe_allow_html=True)
+                # Afficher les films de la page actuelle
+                start_idx = current_page * films_per_page
+                end_idx = min(start_idx + films_per_page, len(genre_movies))
+                page_movies = genre_movies.iloc[start_idx:end_idx]
+                
+                # Affichage en colonnes avec effets hover
+                cols = st.columns(min(len(page_movies), 6))
+                
+                for idx, (_, movie) in enumerate(page_movies.iterrows()):
+                    with cols[idx]:
+                        # Container avec effet hover
+                        with st.container():
+                            # Affiche du film avec classe CSS hover
+                            if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                                st.markdown(f'<div class="movie-hover">', unsafe_allow_html=True)
+                                st.image(movie['poster_url'], width=150, use_column_width=True)
+                                st.markdown('</div>', unsafe_allow_html=True)
+                            
+                            # Titre du film
+                            st.markdown(f"**{movie['title_x']}**")
+                            
+                            # Note
+                            st.write(f"⭐ {movie['averageRating']:.1f}/10")
+                
+                st.markdown("---")
         
         # Section films populaires en fin de page
         st.subheader("🔥 Les plus populaires")
