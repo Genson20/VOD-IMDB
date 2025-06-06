@@ -324,117 +324,134 @@ page = st.sidebar.selectbox(
 # ================================
 if page == "🏠 Accueil":
     st.title("🎬 CinéCreuse+")
+    st.markdown("🎬 Bienvenue sur CinéCreuse+ ! Découvrez les films à l'affiche classés par genre.")
     st.markdown("---")
     
     # Barre de recherche
     search_query = st.text_input("🔍 Rechercher un film", placeholder="Tapez le nom d'un film...")
     
-    # Filtres dans la sidebar
-    st.sidebar.header("🎛️ Filtres")
-    
-    # Extraire les genres uniques
-    all_genres = set()
-    for genres_str in df_main["genres_x"]:
-        if pd.notna(genres_str):
-            all_genres.update(genres_str.split("|"))
-    genres = ["Tous"] + sorted(list(all_genres))
-    selected_genre = st.sidebar.selectbox("Genre", genres)
-    
-    # Filtre par durée
-    duration_ranges = [
-        "Toutes durées",
-        "Court (< 90 min)",
-        "Moyen (90-120 min)",
-        "Long (120-150 min)",
-        "Très long (> 150 min)"
-    ]
-    selected_duration = st.sidebar.selectbox("Durée", duration_ranges)
-    
-    # Filtre par langue
-    language_map = {"fr": "Français", "en": "Anglais", "es": "Espagnol", "ko": "Coréen", "ja": "Japonais"}
-    languages = ["Toutes"] + [language_map.get(lang, lang) for lang in sorted(df_main["original_language"].unique())]
-    selected_language = st.sidebar.selectbox("Langue", languages)
-    
-    # Fonction pour filtrer les films
-    def filter_movies(df, genre, duration, language, search):
-        filtered_df = df.copy()
+    # Si une recherche est effectuée, afficher les résultats de recherche
+    if search_query:
+        st.subheader(f"🔍 Résultats de recherche pour '{search_query}'")
         
-        # Filtre par genre
-        if genre != "Tous":
-            filtered_df = filtered_df[filtered_df["genres_x"].str.contains(genre, case=False, na=False)]
+        # Filtrer par recherche
+        search_results = df_main[df_main["title_x"].str.contains(search_query, case=False, na=False)]
         
-        # Filtre par durée
-        if duration == "Court (< 90 min)":
-            filtered_df = filtered_df[filtered_df["runtime"] < 90]
-        elif duration == "Moyen (90-120 min)":
-            filtered_df = filtered_df[(filtered_df["runtime"] >= 90) & (filtered_df["runtime"] <= 120)]
-        elif duration == "Long (120-150 min)":
-            filtered_df = filtered_df[(filtered_df["runtime"] > 120) & (filtered_df["runtime"] <= 150)]
-        elif duration == "Très long (> 150 min)":
-            filtered_df = filtered_df[filtered_df["runtime"] > 150]
-        
-        # Filtre par langue
-        if language != "Toutes":
-            reverse_map = {v: k for k, v in language_map.items()}
-            lang_code = reverse_map.get(language, language)
-            filtered_df = filtered_df[filtered_df["original_language"] == lang_code]
-        
-        # Filtre par recherche
-        if search:
-            filtered_df = filtered_df[filtered_df["title_x"].str.contains(search, case=False, na=False)]
-        
-        return filtered_df
-    
-    # Application des filtres
-    filtered_movies = filter_movies(df_main, selected_genre, selected_duration, selected_language, search_query)
-    
-    # Affichage du nombre de résultats
-    st.subheader(f"📽️ Films disponibles ({len(filtered_movies)} résultat{'s' if len(filtered_movies) > 1 else ''})")
-    
-    if len(filtered_movies) == 0:
-        st.warning("Aucun film ne correspond à vos critères de recherche.")
-    else:
-        # Affichage des films en grille
-        cols_per_row = 3
-        rows = len(filtered_movies) // cols_per_row + (1 if len(filtered_movies) % cols_per_row > 0 else 0)
-        
-        for row in range(rows):
-            cols = st.columns(cols_per_row)
-            for col_idx in range(cols_per_row):
-                movie_idx = row * cols_per_row + col_idx
-                if movie_idx < len(filtered_movies):
-                    movie = filtered_movies.iloc[movie_idx]
-                    
-                    with cols[col_idx]:
-                        # Carte du film
-                        with st.container():
-                            st.markdown(f"### {movie['affiche']} {movie['title_x']}")
-                            
-                            # Informations du film
-                            col1, col2 = st.columns(2)
-                            with col1:
+        if len(search_results) == 0:
+            st.warning("Aucun film trouvé.")
+        else:
+            # Affichage des résultats en grille
+            cols_per_row = 3
+            rows = len(search_results) // cols_per_row + (1 if len(search_results) % cols_per_row > 0 else 0)
+            
+            for row in range(rows):
+                cols = st.columns(cols_per_row)
+                for col_idx in range(cols_per_row):
+                    movie_idx = row * cols_per_row + col_idx
+                    if movie_idx < len(search_results):
+                        movie = search_results.iloc[movie_idx]
+                        
+                        with cols[col_idx]:
+                            with st.container():
+                                st.markdown(f"### {movie['affiche']} {movie['title_x']}")
                                 st.write(f"**Genre:** {movie['genres_x']}")
-                                st.write(f"**Durée:** {movie['runtime']} min")
-                            with col2:
-                                lang_display = language_map.get(movie['original_language'], movie['original_language'])
-                                st.write(f"**Langue:** {lang_display}")
-                                stars = "⭐" * int(movie['averageRating']) + "☆" * (10 - int(movie['averageRating']))
-                                st.write(f"**Note:** {movie['averageRating']}/10")
-                            
-                            # Bouton détails
-                            if st.button(f"📋 Détails", key=f"details_{movie_idx}"):
-                                st.session_state[f"show_details_{movie_idx}"] = True
-                            
-                            # Affichage des détails si demandé
-                            if st.session_state.get(f"show_details_{movie_idx}", False):
-                                st.info(f"**Description:** {movie['description']}")
-                                st.write(f"**Votes:** {movie['numVotes']:,}")
-                                st.write(f"**Année:** {movie['year']}")
-                                if st.button(f"❌ Fermer", key=f"close_{movie_idx}"):
-                                    st.session_state[f"show_details_{movie_idx}"] = False
-                                    st.rerun()
-                            
-                            st.markdown("---")
+                                st.write(f"**Note:** {movie['averageRating']}/10 ⭐")
+                                st.write(f"**Description:** {movie['description']}")
+                                st.markdown("---")
+    
+    else:
+        # Affichage style Netflix par genre
+        
+        # Extraire tous les genres et compter leur fréquence
+        all_genres = []
+        for genres_str in df_main["genres_x"]:
+            if pd.notna(genres_str):
+                all_genres.extend(genres_str.split("|"))
+        
+        # Compter les genres et prendre les 10 plus populaires
+        genre_counts = pd.Series(all_genres).value_counts()
+        top_genres = genre_counts.head(10).index.tolist()
+        
+        # Priorité spéciale pour certains genres populaires
+        priority_genres = ["Action", "Comédie", "Drame", "Thriller", "Romance", "Science-Fiction"]
+        final_genres = []
+        
+        # Ajouter d'abord les genres prioritaires s'ils existent
+        for genre in priority_genres:
+            if genre in top_genres:
+                final_genres.append(genre)
+        
+        # Ajouter les autres genres populaires
+        for genre in top_genres:
+            if genre not in final_genres:
+                final_genres.append(genre)
+        
+        # Limiter à 10 genres maximum
+        final_genres = final_genres[:10]
+        
+        # Afficher chaque section de genre
+        for genre in final_genres:
+            st.subheader(f"🎭 {genre}")
+            
+            # Filtrer les films par genre
+            genre_movies = df_main[df_main["genres_x"].str.contains(genre, case=False, na=False)]
+            
+            # Trier par note et prendre les 6 meilleurs
+            genre_movies = genre_movies.nlargest(6, 'averageRating')
+            
+            if len(genre_movies) > 0:
+                # Affichage horizontal avec colonnes
+                cols = st.columns(min(len(genre_movies), 6))
+                
+                for idx, (_, movie) in enumerate(genre_movies.iterrows()):
+                    if idx < 6:  # Limiter à 6 films par genre
+                        with cols[idx]:
+                            with st.container():
+                                # Affiche du film (emoji)
+                                st.markdown(f"<div style='text-align: center; font-size: 3em; margin-bottom: 10px;'>{movie['affiche']}</div>", 
+                                          unsafe_allow_html=True)
+                                
+                                # Titre du film
+                                st.markdown(f"**{movie['title_x']}**")
+                                
+                                # Note
+                                st.write(f"⭐ {movie['averageRating']}/10")
+                                
+                                # Durée
+                                st.write(f"⏱️ {movie['runtime']} min")
+                                
+                                # Description courte (première phrase)
+                                description_short = movie['description'][:80] + "..." if len(movie['description']) > 80 else movie['description']
+                                st.write(f"📖 {description_short}")
+                                
+                                # Bouton pour plus de détails
+                                if st.button(f"➕ Détails", key=f"netflix_{genre}_{idx}"):
+                                    st.session_state[f"show_netflix_details_{genre}_{idx}"] = True
+                                
+                                # Affichage des détails si demandé
+                                if st.session_state.get(f"show_netflix_details_{genre}_{idx}", False):
+                                    st.info(f"**Genre complet:** {movie['genres_x']}")
+                                    st.info(f"**Description complète:** {movie['description']}")
+                                    st.info(f"**Année:** {movie['year']}")
+                                    st.info(f"**Votes:** {movie['numVotes']:,}")
+                                    if st.button(f"✖️ Fermer", key=f"close_netflix_{genre}_{idx}"):
+                                        st.session_state[f"show_netflix_details_{genre}_{idx}"] = False
+                                        st.rerun()
+            
+            st.markdown("---")
+        
+        # Section films populaires en fin de page
+        st.subheader("🔥 Les plus populaires")
+        popular_movies = df_main.nlargest(6, 'numVotes')
+        
+        cols = st.columns(6)
+        for idx, (_, movie) in enumerate(popular_movies.iterrows()):
+            with cols[idx]:
+                st.markdown(f"<div style='text-align: center; font-size: 2.5em;'>{movie['affiche']}</div>", 
+                          unsafe_allow_html=True)
+                st.markdown(f"**{movie['title_x']}**")
+                st.write(f"⭐ {movie['averageRating']}/10")
+                st.write(f"👥 {movie['numVotes']:,} votes")
 
 # ================================
 # PAGE RECOMMANDATIONS
