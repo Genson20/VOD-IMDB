@@ -380,7 +380,7 @@ elif page == "📊 KPI Dashboard":
         fig_ratings = px.histogram(
             df_main, 
             x='averageRating', 
-            bins=20,
+            nbins=20,
             title="Répartition des notes (1-10)",
             labels={'averageRating': 'Note moyenne', 'count': 'Nombre de films'}
         )
@@ -390,16 +390,12 @@ elif page == "📊 KPI Dashboard":
     with col2:
         # Histogramme des durées
         st.subheader("⏱️ Distribution des durées")
-        # Créer des tranches de 15 minutes jusqu'à 350 min
-        bins = list(range(0, 351, 15))
-        df_main['runtime_binned'] = pd.cut(df_main['runtime'], bins=bins)
-        runtime_counts = df_main['runtime_binned'].value_counts().sort_index()
-        
-        fig_runtime = px.bar(
-            x=[f"{int(interval.left)}-{int(interval.right)}" for interval in runtime_counts.index],
-            y=runtime_counts.values,
-            title="Répartition des durées (tranches de 15 min)",
-            labels={'x': 'Durée (minutes)', 'y': 'Nombre de films'}
+        fig_runtime = px.histogram(
+            df_main, 
+            x='runtime',
+            nbins=15,
+            title="Répartition des durées",
+            labels={'runtime': 'Durée (minutes)', 'count': 'Nombre de films'}
         )
         fig_runtime.update_layout(height=400)
         st.plotly_chart(fig_runtime, use_container_width=True)
@@ -463,14 +459,11 @@ st.markdown(
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 Statistiques générales")
 st.sidebar.write(f"Total des films: {len(df_main)}")
-if page == "🏠 Accueil":
-    filtered_count = len(filter_movies(df_main, selected_genre, selected_duration, selected_language, search_query))
-    st.sidebar.write(f"Films affichés: {filtered_count}")
 
 # Répartition par langue dans la sidebar
 lang_counts = df_main["original_language"].value_counts()
 st.sidebar.markdown("### 🌍 Langues disponibles")
 language_map = {"fr": "Français", "en": "Anglais", "es": "Espagnol", "ko": "Coréen", "ja": "Japonais"}
 for lang, count in lang_counts.items():
-    lang_display = language_map.get(lang, lang)
+    lang_display = language_map.get(str(lang), str(lang))
     st.sidebar.write(f"• {lang_display}: {count}")
