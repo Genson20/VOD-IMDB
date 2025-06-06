@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
+import random
 
 # Configuration de la page
 st.set_page_config(
@@ -188,14 +189,60 @@ def load_movies():
     df['year'] = df['release_date'].dt.year
     return df
 
+# Base de données fictive des utilisateurs
+@st.cache_data
+def load_users():
+    random.seed(42)  # Pour avoir des données reproductibles
+    np.random.seed(42)
+    
+    users = []
+    genres = ["Action", "Comédie", "Drame", "Romance", "Science-Fiction", "Thriller", "Fantasy", "Animation", "Biographie", "Crime"]
+    
+    # Date de référence : aujourd'hui
+    today = datetime.now()
+    
+    for i in range(500):
+        # Date d'inscription (entre 365 jours et aujourd'hui)
+        days_ago = random.randint(1, 365)
+        date_inscription = today - timedelta(days=days_ago)
+        
+        # Dernière connexion (entre date inscription et aujourd'hui)
+        max_days_since_signup = (today - date_inscription).days
+        days_since_last_login = random.randint(0, min(max_days_since_signup, 30))
+        derniere_connexion = today - timedelta(days=days_since_last_login)
+        
+        # Générer des données cohérentes
+        nombre_sessions = random.randint(1, 50)
+        films_consultes_total = random.randint(5, 200)
+        films_favoris = random.randint(0, min(films_consultes_total // 3, 25))
+        temps_total_passe = random.randint(30, 1200)  # en minutes
+        preferences_genre = random.choice(genres)
+        
+        users.append({
+            "user_id": f"USER_{i+1:04d}",
+            "date_inscription": date_inscription,
+            "derniere_connexion": derniere_connexion,
+            "nombre_sessions": nombre_sessions,
+            "films_consultes_total": films_consultes_total,
+            "films_favoris": films_favoris,
+            "temps_total_passe": temps_total_passe,
+            "preferences_genre": preferences_genre
+        })
+    
+    df = pd.DataFrame(users)
+    df['date_inscription'] = pd.to_datetime(df['date_inscription'])
+    df['derniere_connexion'] = pd.to_datetime(df['derniere_connexion'])
+    return df
+
 # Initialisation des données
 df_main = load_movies()
+df_users = load_users()
 
 # Sidebar Navigation
 st.sidebar.title("🎬 CinéCreuse+")
 page = st.sidebar.selectbox(
     "Navigation",
-    ["🏠 Accueil", "🎯 Recommandations", "📊 KPI Dashboard"]
+    ["🏠 Accueil", "🎯 Recommandations", "📊 KPI Dashboard", "👥 Admin - KPI Utilisateurs"]
 )
 
 # ================================
@@ -445,6 +492,182 @@ elif page == "📊 KPI Dashboard":
     top_films = df_main.nlargest(10, 'averageRating')[['title_x', 'averageRating', 'runtime', 'numVotes']].round(2)
     top_films.columns = ['Titre', 'Note moyenne', 'Durée (min)', 'Nombre de votes']
     st.dataframe(top_films, use_container_width=True)
+
+# ================================
+# PAGE ADMIN - KPI UTILISATEURS
+# ================================
+elif page == "👥 Admin - KPI Utilisateurs":
+    st.title("👥 Administration - KPI Utilisateurs")
+    st.markdown("---")
+    
+    # Calculs des KPI utilisateurs
+    today = datetime.now()
+    seven_days_ago = today - timedelta(days=7)
+    thirty_days_ago = today - timedelta(days=30)
+    
+    # KPI principaux
+    total_users = len(df_users)
+    new_users_7d = len(df_users[df_users['date_inscription'] >= seven_days_ago])
+    avg_sessions = df_users['nombre_sessions'].mean()
+    avg_time_spent = df_users['temps_total_passe'].mean()
+    most_popular_genre = df_users['preferences_genre'].mode().iloc[0]
+    active_users_7d = len(df_users[df_users['derniere_connexion'] >= seven_days_ago])
+    activity_rate = (active_users_7d / total_users) * 100
+    
+    # Affichage des KPI en deux colonnes
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("📊 Métriques Principales")
+        
+        st.metric(
+            label="👥 Nombre total de clients inscrits",
+            value=f"{total_users:,}"
+        )
+        
+        st.metric(
+            label="🆕 Nouveaux inscrits (7 derniers jours)",
+            value=f"{new_users_7d:,}",
+            delta=f"+{new_users_7d} cette semaine"
+        )
+        
+        st.metric(
+            label="🔄 Nombre moyen de sessions par utilisateur",
+            value=f"{avg_sessions:.1f}"
+        )
+        
+        st.metric(
+            label="⏰ Temps moyen passé sur l'app",
+            value=f"{avg_time_spent:.0f} min"
+        )
+    
+    with col2:
+        st.subheader("📈 Activité & Engagement")
+        
+        st.metric(
+            label="🎭 Genre préféré global",
+            value=most_popular_genre
+        )
+        
+        st.metric(
+            label="✅ Utilisateurs actifs (7 derniers jours)",
+            value=f"{active_users_7d:,}"
+        )
+        
+        st.metric(
+            label="📊 Taux d'activité",
+            value=f"{activity_rate:.1f}%"
+        )
+        
+        # Statistique supplémentaire
+        avg_favorites = df_users['films_favoris'].mean()
+        st.metric(
+            label="⭐ Films favoris moyens par utilisateur",
+            value=f"{avg_favorites:.1f}"
+        )
+    
+    st.markdown("---")
+    
+    # Graphiques en deux colonnes
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("📅 Évolution des inscriptions (30 derniers jours)")
+        
+        # Créer les données pour le graphique d'évolution
+        last_30_days = pd.date_range(start=thirty_days_ago, end=today, freq='D')
+        daily_signups = []
+        
+        for day in last_30_days:
+            count = len(df_users[df_users['date_inscription'].dt.date == day.date()])
+            daily_signups.append(count)
+        
+        signup_data = pd.DataFrame({
+            'Date': last_30_days,
+            'Nouvelles inscriptions': daily_signups
+        })
+        
+        st.line_chart(signup_data.set_index('Date'))
+    
+    with col2:
+        st.subheader("🎭 Répartition des préférences de genre")
+        
+        genre_preferences = df_users['preferences_genre'].value_counts()
+        
+        fig_prefs = px.pie(
+            values=genre_preferences.values,
+            names=genre_preferences.index,
+            title="Préférences de genre des utilisateurs"
+        )
+        fig_prefs.update_layout(height=400)
+        st.plotly_chart(fig_prefs, use_container_width=True)
+    
+    # Graphiques supplémentaires en pleine largeur
+    st.markdown("---")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("📊 Distribution du nombre de sessions")
+        
+        fig_sessions = px.histogram(
+            df_users,
+            x='nombre_sessions',
+            nbins=20,
+            title="Répartition du nombre de sessions par utilisateur",
+            labels={'nombre_sessions': 'Nombre de sessions', 'count': 'Nombre d\'utilisateurs'}
+        )
+        fig_sessions.update_layout(height=400)
+        st.plotly_chart(fig_sessions, use_container_width=True)
+    
+    with col2:
+        st.subheader("⏱️ Distribution du temps passé")
+        
+        fig_time = px.histogram(
+            df_users,
+            x='temps_total_passe',
+            nbins=20,
+            title="Répartition du temps total passé (minutes)",
+            labels={'temps_total_passe': 'Temps total (min)', 'count': 'Nombre d\'utilisateurs'}
+        )
+        fig_time.update_layout(height=400)
+        st.plotly_chart(fig_time, use_container_width=True)
+    
+    # Tableau détaillé des utilisateurs les plus actifs
+    st.markdown("---")
+    st.subheader("🏆 Top 10 des utilisateurs les plus actifs")
+    
+    top_users = df_users.nlargest(10, 'nombre_sessions')[
+        ['user_id', 'nombre_sessions', 'films_consultes_total', 'temps_total_passe', 'preferences_genre']
+    ].round(2)
+    top_users.columns = ['ID Utilisateur', 'Sessions', 'Films consultés', 'Temps total (min)', 'Genre préféré']
+    st.dataframe(top_users, use_container_width=True)
+    
+    # Analyses supplémentaires
+    st.markdown("---")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.subheader("📈 Analyse d'engagement")
+        highly_engaged = len(df_users[df_users['nombre_sessions'] > 20])
+        engagement_rate = (highly_engaged / total_users) * 100
+        st.write(f"**Utilisateurs très engagés (>20 sessions):** {highly_engaged}")
+        st.write(f"**Taux d'engagement élevé:** {engagement_rate:.1f}%")
+    
+    with col2:
+        st.subheader("⭐ Analyse des favoris")
+        users_with_favorites = len(df_users[df_users['films_favoris'] > 0])
+        favorite_rate = (users_with_favorites / total_users) * 100
+        st.write(f"**Utilisateurs avec des favoris:** {users_with_favorites}")
+        st.write(f"**Taux d'adoption des favoris:** {favorite_rate:.1f}%")
+    
+    with col3:
+        st.subheader("🕒 Analyse de rétention")
+        recent_activity = len(df_users[df_users['derniere_connexion'] >= seven_days_ago])
+        retention_rate = (recent_activity / total_users) * 100
+        st.write(f"**Utilisateurs actifs récemment:** {recent_activity}")
+        st.write(f"**Taux de rétention (7j):** {retention_rate:.1f}%")
 
 # Pied de page
 st.markdown("---")
