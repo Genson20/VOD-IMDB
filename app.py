@@ -14,180 +14,84 @@ st.set_page_config(
     layout="wide"
 )
 
-# Base de données fictive enrichie pour le dashboard KPI
+# Chargement de la base de données réelle
 @st.cache_data
 def load_movies():
-    movies = [
-        {
-            "title_x": "Les Misérables",
-            "genres_x": "Drame",
-            "runtime": 158,
-            "original_language": "fr",
-            "averageRating": 8.4,
-            "numVotes": 125000,
-            "release_date": "2012-12-25",
-            "description": "Une adaptation moderne du classique de Victor Hugo",
-            "affiche": "🎭"
-        },
-        {
-            "title_x": "Amélie",
-            "genres_x": "Romance|Comédie",
-            "runtime": 122,
-            "original_language": "fr",
-            "averageRating": 9.0,
-            "numVotes": 180000,
-            "release_date": "2001-04-25",
-            "description": "L'histoire touchante d'une jeune femme parisienne",
-            "affiche": "💝"
-        },
-        {
-            "title_x": "Intouchables",
-            "genres_x": "Comédie|Drame",
-            "runtime": 112,
-            "original_language": "fr",
-            "averageRating": 9.2,
-            "numVotes": 250000,
-            "release_date": "2011-11-02",
-            "description": "Une amitié improbable entre deux hommes",
-            "affiche": "🤝"
-        },
-        {
-            "title_x": "La Vie en Rose",
-            "genres_x": "Biographie|Drame",
-            "runtime": 140,
-            "original_language": "fr",
-            "averageRating": 8.2,
-            "numVotes": 95000,
-            "release_date": "2007-06-08",
-            "description": "La vie tumultueuse d'Édith Piaf",
-            "affiche": "🌹"
-        },
-        {
-            "title_x": "Le Fabuleux Destin d'Amélie Poulain",
-            "genres_x": "Romance|Comédie",
-            "runtime": 122,
-            "original_language": "fr",
-            "averageRating": 8.8,
-            "numVotes": 200000,
-            "release_date": "2001-04-25",
-            "description": "Une comédie romantique emblématique",
-            "affiche": "🎪"
-        },
-        {
-            "title_x": "Asterix et Obelix: Mission Cléopâtre",
-            "genres_x": "Comédie|Aventure",
-            "runtime": 107,
-            "original_language": "fr",
-            "averageRating": 7.6,
-            "numVotes": 85000,
-            "release_date": "2002-01-30",
-            "description": "Les aventures des Gaulois en Égypte",
-            "affiche": "🏺"
-        },
-        {
-            "title_x": "The Matrix",
-            "genres_x": "Science-Fiction|Action",
-            "runtime": 136,
-            "original_language": "en",
-            "averageRating": 8.7,
-            "numVotes": 1500000,
-            "release_date": "1999-03-31",
-            "description": "Un informaticien découvre la vraie nature de la réalité",
-            "affiche": "🕶️"
-        },
-        {
-            "title_x": "Titanic",
-            "genres_x": "Romance|Drame",
-            "runtime": 195,
-            "original_language": "en",
-            "averageRating": 8.0,
-            "numVotes": 1200000,
-            "release_date": "1997-12-19",
-            "description": "Une histoire d'amour tragique à bord du Titanic",
-            "affiche": "🚢"
-        },
-        {
-            "title_x": "El Laberinto del Fauno",
-            "genres_x": "Fantasy|Drame",
-            "runtime": 118,
-            "original_language": "es",
-            "averageRating": 8.4,
-            "numVotes": 220000,
-            "release_date": "2006-10-11",
-            "description": "Un conte sombre dans l'Espagne de Franco",
-            "affiche": "🧚"
-        },
-        {
-            "title_x": "Parasite",
-            "genres_x": "Thriller|Comédie",
-            "runtime": 132,
-            "original_language": "ko",
-            "averageRating": 9.5,
-            "numVotes": 350000,
-            "release_date": "2019-05-30",
-            "description": "Un thriller social primé aux Oscars",
-            "affiche": "🏠"
-        },
-        {
-            "title_x": "Pulp Fiction",
-            "genres_x": "Crime|Drame",
-            "runtime": 154,
-            "original_language": "en",
-            "averageRating": 8.9,
-            "numVotes": 1800000,
-            "release_date": "1994-10-14",
-            "description": "Des histoires entrelacées dans le Los Angeles criminel",
-            "affiche": "🔫"
-        },
-        {
-            "title_x": "Spirited Away",
-            "genres_x": "Animation|Fantasy",
-            "runtime": 125,
-            "original_language": "ja",
-            "averageRating": 9.3,
-            "numVotes": 650000,
-            "release_date": "2001-07-20",
-            "description": "Une jeune fille dans un monde d'esprits",
-            "affiche": "👻"
-        },
-        {
-            "title_x": "Inception",
-            "genres_x": "Science-Fiction|Thriller",
-            "runtime": 148,
-            "original_language": "en",
-            "averageRating": 8.8,
-            "numVotes": 2200000,
-            "release_date": "2010-07-16",
-            "description": "L'art de pénétrer dans les rêves",
-            "affiche": "🌀"
-        },
-        {
-            "title_x": "The Godfather",
-            "genres_x": "Crime|Drame",
-            "runtime": 175,
-            "original_language": "en",
-            "averageRating": 9.2,
-            "numVotes": 1700000,
-            "release_date": "1972-03-24",
-            "description": "La saga d'une famille mafieuse",
-            "affiche": "👑"
-        },
-        {
-            "title_x": "Seven Samurai",
-            "genres_x": "Action|Drame",
-            "runtime": 207,
-            "original_language": "ja",
-            "averageRating": 9.0,
-            "numVotes": 330000,
-            "release_date": "1954-04-26",
-            "description": "Sept samouraïs défendent un village",
-            "affiche": "⚔️"
-        }
-    ]
-    df = pd.DataFrame(movies)
-    df['release_date'] = pd.to_datetime(df['release_date'])
-    df['year'] = df['release_date'].dt.year
-    return df
+    try:
+        # Charger le CSV réel
+        df = pd.read_csv('df_main_clean.csv')
+        
+        # Nettoyer et préparer les données
+        df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
+        df['year'] = df['release_date'].dt.year
+        
+        # Nettoyer les genres - convertir de string representation de liste vers string simple
+        df['genres_x'] = df['genres_x'].astype(str)
+        df['genres_x'] = df['genres_x'].str.replace("[", "").str.replace("]", "").str.replace("'", "").str.replace('"', '')
+        
+        # Assurer que les colonnes nécessaires existent et ont des types corrects
+        df['runtime'] = pd.to_numeric(df['runtime'], errors='coerce')
+        df['averageRating'] = pd.to_numeric(df['averageRating'], errors='coerce')
+        df['numVotes'] = pd.to_numeric(df['numVotes'], errors='coerce')
+        
+        # Utiliser overview comme description
+        df['description'] = df['overview'].fillna('Description non disponible')
+        
+        # Ajouter des emojis basés sur les genres
+        def get_emoji_for_genre(genres):
+            if pd.isna(genres):
+                return "🎬"
+            genres_str = str(genres).lower()
+            if 'action' in genres_str:
+                return "💥"
+            elif 'comedy' in genres_str:
+                return "😂"
+            elif 'drama' in genres_str:
+                return "🎭"
+            elif 'horror' in genres_str:
+                return "👻"
+            elif 'romance' in genres_str:
+                return "💕"
+            elif 'science fiction' in genres_str or 'sci-fi' in genres_str:
+                return "🚀"
+            elif 'thriller' in genres_str:
+                return "😱"
+            elif 'fantasy' in genres_str:
+                return "🧚"
+            elif 'animation' in genres_str:
+                return "🎨"
+            elif 'crime' in genres_str:
+                return "🔫"
+            elif 'war' in genres_str:
+                return "⚔️"
+            elif 'adventure' in genres_str:
+                return "🗺️"
+            else:
+                return "🎬"
+        
+        df['affiche'] = df['genres_x'].apply(get_emoji_for_genre)
+        
+        # Filtrer les films avec des données valides
+        df = df.dropna(subset=['title_x', 'genres_x'])
+        df = df[df['runtime'] > 0]  # Éliminer les films sans durée
+        
+        return df
+        
+    except Exception as e:
+        st.error(f"Erreur lors du chargement des données: {e}")
+        # Fallback avec quelques données minimales
+        return pd.DataFrame({
+            'title_x': ['Erreur de chargement'],
+            'genres_x': ['Drama'],
+            'runtime': [120],
+            'original_language': ['en'],
+            'averageRating': [7.0],
+            'numVotes': [1000],
+            'release_date': [datetime.now()],
+            'year': [2024],
+            'description': ['Erreur lors du chargement de la base de données'],
+            'affiche': ['🎬']
+        })
 
 # Fonction pour générer les horaires de séances
 @st.cache_data
