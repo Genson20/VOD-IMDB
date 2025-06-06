@@ -189,6 +189,78 @@ def load_movies():
     df['year'] = df['release_date'].dt.year
     return df
 
+# Fonction pour générer les horaires de séances
+@st.cache_data
+def generate_showtimes():
+    random.seed(42)
+    showtimes = {}
+    today = datetime.now()
+    
+    # Horaires disponibles
+    time_slots = ["14:00", "17:00", "20:00", "22:00"]
+    
+    # Pour chaque film actuellement disponible (on prend les 8 premiers)
+    current_movies = df_main.head(8)
+    
+    for _, movie in current_movies.iterrows():
+        movie_showtimes = {}
+        
+        # Générer les horaires pour les 7 prochains jours
+        for i in range(7):
+            date = today + timedelta(days=i)
+            date_str = date.strftime("%Y-%m-%d")
+            
+            # Chaque film a 2-3 séances par jour
+            num_sessions = random.randint(2, 3)
+            selected_times = random.sample(time_slots, num_sessions)
+            movie_showtimes[date_str] = sorted(selected_times)
+        
+        showtimes[movie['title_x']] = movie_showtimes
+    
+    return showtimes
+
+# Fonction pour générer les films à venir
+@st.cache_data
+def generate_upcoming_movies():
+    upcoming = []
+    today = datetime.now()
+    
+    # Créer quelques films fictifs à venir dans les prochaines semaines
+    upcoming_titles = [
+        {
+            "title_x": "Avatar 3: The Seed of Eywa",
+            "overview": "Jake Sully et sa famille continuent leur aventure sur Pandora avec de nouveaux défis et des territoires inexplorés.",
+            "release_date": today + timedelta(days=15),
+            "poster_url": "🌊"
+        },
+        {
+            "title_x": "Mission Impossible 8",
+            "overview": "Ethan Hunt revient pour une mission encore plus périlleuse qui le mènera aux quatre coins du globe.",
+            "release_date": today + timedelta(days=22),
+            "poster_url": "🎯"
+        },
+        {
+            "title_x": "Dune: Partie Trois",
+            "overview": "Paul Atreides poursuit son voyage épique à travers l'univers de Dune dans cette conclusion spectaculaire.",
+            "release_date": today + timedelta(days=28),
+            "poster_url": "🏜️"
+        },
+        {
+            "title_x": "Spider-Man: New Dimensions",
+            "overview": "Miles Morales explore de nouvelles dimensions dans cette aventure animée révolutionnaire.",
+            "release_date": today + timedelta(days=35),
+            "poster_url": "🕷️"
+        },
+        {
+            "title_x": "Fast & Furious 11",
+            "overview": "Dom et sa famille reviennent pour une dernière course contre la montre dans cet ultime chapitre.",
+            "release_date": today + timedelta(days=42),
+            "poster_url": "🏎️"
+        }
+    ]
+    
+    return pd.DataFrame(upcoming_titles)
+
 # Base de données fictive des utilisateurs
 @st.cache_data
 def load_users():
@@ -237,12 +309,14 @@ def load_users():
 # Initialisation des données
 df_main = load_movies()
 df_users = load_users()
+showtimes_data = generate_showtimes()
+upcoming_movies = generate_upcoming_movies()
 
 # Sidebar Navigation
 st.sidebar.title("🎬 CinéCreuse+")
 page = st.sidebar.selectbox(
     "Navigation",
-    ["🏠 Accueil", "🎯 Recommandations", "👥 Administration"]
+    ["🏠 Accueil", "🎯 Recommandations", "🎬 Programme", "👥 Administration"]
 )
 
 # ================================
@@ -375,6 +449,167 @@ elif page == "🎯 Recommandations":
     st.subheader("🏆 Films les mieux notés")
     top_movies = df_main.nlargest(5, 'averageRating')[['title_x', 'averageRating', 'genres_x', 'runtime']]
     st.dataframe(top_movies, use_container_width=True)
+
+# ================================
+# PAGE PROGRAMME
+# ================================
+elif page == "🎬 Programme":
+    st.title("🎬 Programme des séances")
+    st.markdown("---")
+    
+    # ========================================
+    # SECTION 1: FILMS ACTUELLEMENT À L'AFFICHE
+    # ========================================
+    st.header("🎭 Films actuellement à l'affiche")
+    
+    # Filtre par jour
+    today = datetime.now()
+    date_options = []
+    date_labels = []
+    
+    for i in range(7):
+        date = today + timedelta(days=i)
+        date_options.append(date.strftime("%Y-%m-%d"))
+        if i == 0:
+            date_labels.append(f"Aujourd'hui ({date.strftime('%d/%m')})")
+        elif i == 1:
+            date_labels.append(f"Demain ({date.strftime('%d/%m')})")
+        else:
+            date_labels.append(date.strftime("%A %d/%m"))
+    
+    # Sélecteur de jour
+    selected_date_index = st.selectbox(
+        "Choisir un jour:",
+        range(len(date_labels)),
+        format_func=lambda x: date_labels[x]
+    )
+    selected_date = date_options[selected_date_index]
+    
+    st.subheader(f"📅 Séances du {date_labels[selected_date_index]}")
+    
+    # Afficher les films actuellement à l'affiche avec leurs horaires
+    current_movies = df_main.head(8)  # 8 films à l'affiche
+    
+    # Affichage en grille de 2 colonnes
+    for i in range(0, len(current_movies), 2):
+        cols = st.columns(2)
+        
+        for col_idx, col in enumerate(cols):
+            movie_idx = i + col_idx
+            if movie_idx < len(current_movies):
+                movie = current_movies.iloc[movie_idx]
+                
+                with col:
+                    with st.container():
+                        # En-tête du film
+                        st.markdown(f"### {movie['affiche']} {movie['title_x']}")
+                        
+                        # Informations du film
+                        col1, col2 = st.columns([2, 1])
+                        
+                        with col1:
+                            st.write(f"**Genre:** {movie['genres_x']}")
+                            st.write(f"**Durée:** {movie['runtime']} min")
+                            st.write(f"**Note:** {movie['averageRating']}/10 ⭐")
+                            st.write(f"**Résumé:** {movie['description']}")
+                        
+                        with col2:
+                            # Affichage de l'affiche (emoji)
+                            st.markdown(f"<div style='text-align: center; font-size: 4em;'>{movie['affiche']}</div>", 
+                                      unsafe_allow_html=True)
+                        
+                        # Horaires pour le jour sélectionné
+                        if movie['title_x'] in showtimes_data and selected_date in showtimes_data[movie['title_x']]:
+                            horaires = showtimes_data[movie['title_x']][selected_date]
+                            st.write("**🕐 Horaires:**")
+                            
+                            # Afficher les horaires en ligne
+                            horaires_html = " ".join([f"<span style='background-color: #ff6b6b; color: white; padding: 5px 10px; border-radius: 15px; margin: 2px; display: inline-block;'>{h}</span>" for h in horaires])
+                            st.markdown(horaires_html, unsafe_allow_html=True)
+                        else:
+                            st.write("**🕐 Horaires:** Aucune séance ce jour")
+                        
+                        st.markdown("---")
+    
+    st.markdown("---")
+    
+    # ========================================
+    # SECTION 2: FILMS À VENIR
+    # ========================================
+    st.header("🎟️ Films à venir ce mois")
+    
+    # Filtre par période
+    filter_period = st.selectbox(
+        "Filtrer par période:",
+        ["Tous les films à venir", "Cette semaine", "Ces 2 prochaines semaines", "Ce mois"]
+    )
+    
+    # Appliquer le filtre
+    filtered_upcoming = upcoming_movies.copy()
+    
+    if filter_period == "Cette semaine":
+        week_limit = today + timedelta(days=7)
+        filtered_upcoming = filtered_upcoming[filtered_upcoming['release_date'] <= week_limit]
+    elif filter_period == "Ces 2 prochaines semaines":
+        two_weeks_limit = today + timedelta(days=14)
+        filtered_upcoming = filtered_upcoming[filtered_upcoming['release_date'] <= two_weeks_limit]
+    elif filter_period == "Ce mois":
+        month_limit = today + timedelta(days=30)
+        filtered_upcoming = filtered_upcoming[filtered_upcoming['release_date'] <= month_limit]
+    
+    if len(filtered_upcoming) == 0:
+        st.info("Aucun film à venir pour la période sélectionnée.")
+    else:
+        # Afficher les films à venir
+        for _, movie in filtered_upcoming.iterrows():
+            with st.container():
+                col1, col2 = st.columns([1, 3])
+                
+                with col1:
+                    # Affiche (emoji)
+                    st.markdown(f"<div style='text-align: center; font-size: 5em;'>{movie['poster_url']}</div>", 
+                              unsafe_allow_html=True)
+                
+                with col2:
+                    st.markdown(f"### {movie['title_x']}")
+                    
+                    # Date de sortie
+                    release_date = movie['release_date']
+                    days_until_release = (release_date - today).days
+                    
+                    if days_until_release == 0:
+                        date_text = "Sortie aujourd'hui !"
+                    elif days_until_release == 1:
+                        date_text = "Sortie demain !"
+                    else:
+                        date_text = f"Sortie dans {days_until_release} jours"
+                    
+                    st.write(f"**📅 Date de sortie:** {release_date.strftime('%d/%m/%Y')} ({date_text})")
+                    st.write(f"**📖 Aperçu:** {movie['overview']}")
+                    
+                    # Bouton de notification (fictif)
+                    if st.button(f"🔔 Me notifier", key=f"notify_{movie['title_x']}"):
+                        st.success(f"Vous serez notifié lors de la sortie de '{movie['title_x']}'!")
+                
+                st.markdown("---")
+    
+    # Section bonus: Statistiques des séances
+    st.markdown("---")
+    st.header("📊 Statistiques des séances")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        total_shows_today = sum(len(showtimes_data[movie][selected_date]) 
+                               for movie in showtimes_data 
+                               if selected_date in showtimes_data[movie])
+        st.metric("🎬 Séances aujourd'hui", total_shows_today)
+    
+    with col2:
+        st.metric("🎭 Films à l'affiche", len(current_movies))
+    
+    with col3:
+        st.metric("🎟️ Films à venir", len(upcoming_movies))
 
 # ================================
 # PAGE ADMINISTRATION
