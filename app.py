@@ -242,7 +242,7 @@ df_users = load_users()
 st.sidebar.title("🎬 CinéCreuse+")
 page = st.sidebar.selectbox(
     "Navigation",
-    ["🏠 Accueil", "🎯 Recommandations", "📊 KPI Dashboard", "👥 Admin - KPI Utilisateurs"]
+    ["🏠 Accueil", "🎯 Recommandations", "👥 Administration"]
 )
 
 # ================================
@@ -377,135 +377,23 @@ elif page == "🎯 Recommandations":
     st.dataframe(top_movies, use_container_width=True)
 
 # ================================
-# PAGE KPI DASHBOARD
+# PAGE ADMINISTRATION
 # ================================
-elif page == "📊 KPI Dashboard":
-    st.title("🎬 Tableau de bord - KPI CinéCreuse+")
+elif page == "👥 Administration":
+    st.title("👥 Tableau de bord Administrateur")
     st.markdown("---")
     
-    # Calcul des KPI
-    total_films = len(df_main)
-    avg_rating = df_main['averageRating'].mean()
-    avg_runtime = df_main['runtime'].mean()
-    pct_french = (df_main['original_language'] == 'fr').sum() / total_films * 100
-    
-    # Affichage des KPI en cards
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.metric(
-            label="🎥 Nombre total de films",
-            value=f"{total_films:,}"
-        )
-    
-    with col2:
-        st.metric(
-            label="⭐ Moyenne des notes",
-            value=f"{avg_rating:.1f}/10"
-        )
-    
-    with col3:
-        st.metric(
-            label="⏱️ Durée moyenne",
-            value=f"{avg_runtime:.0f} min"
-        )
-    
-    with col4:
-        st.metric(
-            label="🇫🇷 % Films français",
-            value=f"{pct_french:.1f}%"
-        )
-    
-    st.markdown("---")
-    
-    # Section des visualisations
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Histogramme des notes
-        st.subheader("📊 Distribution des notes")
-        fig_ratings = px.histogram(
-            df_main, 
-            x='averageRating', 
-            nbins=20,
-            title="Répartition des notes (1-10)",
-            labels={'averageRating': 'Note moyenne', 'count': 'Nombre de films'}
-        )
-        fig_ratings.update_layout(height=400)
-        st.plotly_chart(fig_ratings, use_container_width=True)
-    
-    with col2:
-        # Histogramme des durées
-        st.subheader("⏱️ Distribution des durées")
-        fig_runtime = px.histogram(
-            df_main, 
-            x='runtime',
-            nbins=15,
-            title="Répartition des durées",
-            labels={'runtime': 'Durée (minutes)', 'count': 'Nombre de films'}
-        )
-        fig_runtime.update_layout(height=400)
-        st.plotly_chart(fig_runtime, use_container_width=True)
-    
-    # Graphiques en pleine largeur
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Nombre de films par genre
-        st.subheader("🎭 Films par genre")
-        # Extraire tous les genres
-        all_genres = []
-        for genres_str in df_main["genres_x"]:
-            if pd.notna(genres_str):
-                all_genres.extend(genres_str.split("|"))
-        
-        genre_counts = pd.Series(all_genres).value_counts()
-        
-        fig_genres = px.bar(
-            x=genre_counts.values,
-            y=genre_counts.index,
-            orientation='h',
-            title="Nombre de films par genre",
-            labels={'x': 'Nombre de films', 'y': 'Genre'}
-        )
-        fig_genres.update_layout(height=500)
-        st.plotly_chart(fig_genres, use_container_width=True)
-    
-    with col2:
-        # Répartition par année
-        st.subheader("📅 Films par année")
-        year_counts = df_main['year'].value_counts().sort_index()
-        
-        fig_years = px.line(
-            x=year_counts.index,
-            y=year_counts.values,
-            title="Évolution du nombre de films par année",
-            labels={'x': 'Année', 'y': 'Nombre de films'}
-        )
-        fig_years.update_layout(height=500)
-        st.plotly_chart(fig_years, use_container_width=True)
-    
-    st.markdown("---")
-    
-    # Tableau interactif des top films
-    st.subheader("🏆 Top 10 des films les mieux notés")
-    top_films = df_main.nlargest(10, 'averageRating')[['title_x', 'averageRating', 'runtime', 'numVotes']].round(2)
-    top_films.columns = ['Titre', 'Note moyenne', 'Durée (min)', 'Nombre de votes']
-    st.dataframe(top_films, use_container_width=True)
-
-# ================================
-# PAGE ADMIN - KPI UTILISATEURS
-# ================================
-elif page == "👥 Admin - KPI Utilisateurs":
-    st.title("👥 Administration - KPI Utilisateurs")
-    st.markdown("---")
+    # ========================================
+    # SECTION KPI UTILISATEURS
+    # ========================================
+    st.header("👥 KPI Utilisateurs")
     
     # Calculs des KPI utilisateurs
     today = datetime.now()
     seven_days_ago = today - timedelta(days=7)
     thirty_days_ago = today - timedelta(days=30)
     
-    # KPI principaux
+    # KPI principaux utilisateurs
     total_users = len(df_users)
     new_users_7d = len(df_users[df_users['date_inscription'] >= seven_days_ago])
     avg_sessions = df_users['nombre_sessions'].mean()
@@ -514,7 +402,7 @@ elif page == "👥 Admin - KPI Utilisateurs":
     active_users_7d = len(df_users[df_users['derniere_connexion'] >= seven_days_ago])
     activity_rate = (active_users_7d / total_users) * 100
     
-    # Affichage des KPI en deux colonnes
+    # Affichage des KPI utilisateurs en deux colonnes
     col1, col2 = st.columns(2)
     
     with col1:
@@ -566,13 +454,11 @@ elif page == "👥 Admin - KPI Utilisateurs":
             value=f"{avg_favorites:.1f}"
         )
     
-    st.markdown("---")
-    
-    # Graphiques en deux colonnes
+    # Graphiques utilisateurs
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("📅 Évolution des inscriptions (30 derniers jours)")
+        st.subheader("📅 Évolution des inscriptions (30 jours)")
         
         # Créer les données pour le graphique d'évolution
         last_30_days = pd.date_range(start=thirty_days_ago, end=today, freq='D')
@@ -587,10 +473,11 @@ elif page == "👥 Admin - KPI Utilisateurs":
             'Nouvelles inscriptions': daily_signups
         })
         
-        st.line_chart(signup_data.set_index('Date'))
+        # Utiliser bar_chart au lieu de line_chart pour éviter les erreurs
+        st.bar_chart(signup_data.set_index('Date'))
     
     with col2:
-        st.subheader("🎭 Répartition des préférences de genre")
+        st.subheader("🎭 Préférences de genre")
         
         genre_preferences = df_users['preferences_genre'].value_counts()
         
@@ -602,39 +489,7 @@ elif page == "👥 Admin - KPI Utilisateurs":
         fig_prefs.update_layout(height=400)
         st.plotly_chart(fig_prefs, use_container_width=True)
     
-    # Graphiques supplémentaires en pleine largeur
-    st.markdown("---")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("📊 Distribution du nombre de sessions")
-        
-        fig_sessions = px.histogram(
-            df_users,
-            x='nombre_sessions',
-            nbins=20,
-            title="Répartition du nombre de sessions par utilisateur",
-            labels={'nombre_sessions': 'Nombre de sessions', 'count': 'Nombre d\'utilisateurs'}
-        )
-        fig_sessions.update_layout(height=400)
-        st.plotly_chart(fig_sessions, use_container_width=True)
-    
-    with col2:
-        st.subheader("⏱️ Distribution du temps passé")
-        
-        fig_time = px.histogram(
-            df_users,
-            x='temps_total_passe',
-            nbins=20,
-            title="Répartition du temps total passé (minutes)",
-            labels={'temps_total_passe': 'Temps total (min)', 'count': 'Nombre d\'utilisateurs'}
-        )
-        fig_time.update_layout(height=400)
-        st.plotly_chart(fig_time, use_container_width=True)
-    
-    # Tableau détaillé des utilisateurs les plus actifs
-    st.markdown("---")
+    # Tableau des utilisateurs les plus actifs
     st.subheader("🏆 Top 10 des utilisateurs les plus actifs")
     
     top_users = df_users.nlargest(10, 'nombre_sessions')[
@@ -643,31 +498,123 @@ elif page == "👥 Admin - KPI Utilisateurs":
     top_users.columns = ['ID Utilisateur', 'Sessions', 'Films consultés', 'Temps total (min)', 'Genre préféré']
     st.dataframe(top_users, use_container_width=True)
     
-    # Analyses supplémentaires
     st.markdown("---")
     
-    col1, col2, col3 = st.columns(3)
+    # ========================================
+    # SECTION KPI FILMS
+    # ========================================
+    st.header("🎬 KPI Films")
+    
+    # Calcul des KPI films
+    total_films = len(df_main)
+    avg_rating = df_main['averageRating'].mean()
+    avg_runtime = df_main['runtime'].mean()
+    pct_french = (df_main['original_language'] == 'fr').sum() / total_films * 100
+    
+    # Affichage des KPI films en quatre colonnes
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.subheader("📈 Analyse d'engagement")
-        highly_engaged = len(df_users[df_users['nombre_sessions'] > 20])
-        engagement_rate = (highly_engaged / total_users) * 100
-        st.write(f"**Utilisateurs très engagés (>20 sessions):** {highly_engaged}")
-        st.write(f"**Taux d'engagement élevé:** {engagement_rate:.1f}%")
+        st.metric(
+            label="🎥 Nombre total de films",
+            value=f"{total_films:,}"
+        )
     
     with col2:
-        st.subheader("⭐ Analyse des favoris")
-        users_with_favorites = len(df_users[df_users['films_favoris'] > 0])
-        favorite_rate = (users_with_favorites / total_users) * 100
-        st.write(f"**Utilisateurs avec des favoris:** {users_with_favorites}")
-        st.write(f"**Taux d'adoption des favoris:** {favorite_rate:.1f}%")
+        st.metric(
+            label="⭐ Moyenne des notes",
+            value=f"{avg_rating:.1f}/10"
+        )
     
     with col3:
-        st.subheader("🕒 Analyse de rétention")
-        recent_activity = len(df_users[df_users['derniere_connexion'] >= seven_days_ago])
-        retention_rate = (recent_activity / total_users) * 100
-        st.write(f"**Utilisateurs actifs récemment:** {recent_activity}")
-        st.write(f"**Taux de rétention (7j):** {retention_rate:.1f}%")
+        st.metric(
+            label="⏱️ Durée moyenne",
+            value=f"{avg_runtime:.0f} min"
+        )
+    
+    with col4:
+        st.metric(
+            label="🇫🇷 % Films français",
+            value=f"{pct_french:.1f}%"
+        )
+    
+    # Graphiques films
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Histogramme des notes
+        st.subheader("📊 Distribution des notes")
+        fig_ratings = px.histogram(
+            df_main, 
+            x='averageRating', 
+            nbins=20,
+            title="Répartition des notes (1-10)",
+            labels={'averageRating': 'Note moyenne', 'count': 'Nombre de films'}
+        )
+        fig_ratings.update_layout(height=400)
+        st.plotly_chart(fig_ratings, use_container_width=True)
+    
+    with col2:
+        # Histogramme des durées
+        st.subheader("⏱️ Distribution des durées")
+        fig_runtime = px.histogram(
+            df_main, 
+            x='runtime',
+            nbins=15,
+            title="Répartition des durées",
+            labels={'runtime': 'Durée (minutes)', 'count': 'Nombre de films'}
+        )
+        fig_runtime.update_layout(height=400)
+        st.plotly_chart(fig_runtime, use_container_width=True)
+    
+    # Graphiques films en pleine largeur
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Nombre de films par genre
+        st.subheader("🎭 Films par genre")
+        # Extraire tous les genres
+        all_genres = []
+        for genres_str in df_main["genres_x"]:
+            if pd.notna(genres_str):
+                all_genres.extend(genres_str.split("|"))
+        
+        genre_counts = pd.Series(all_genres).value_counts()
+        
+        fig_genres = px.bar(
+            x=genre_counts.values,
+            y=genre_counts.index,
+            orientation='h',
+            title="Nombre de films par genre",
+            labels={'x': 'Nombre de films', 'y': 'Genre'}
+        )
+        fig_genres.update_layout(height=500)
+        st.plotly_chart(fig_genres, use_container_width=True)
+    
+    with col2:
+        # Répartition par langue
+        st.subheader("🌍 Répartition par langue")
+        language_map = {"fr": "Français", "en": "Anglais", "es": "Espagnol", "ko": "Coréen", "ja": "Japonais"}
+        lang_counts = df_main["original_language"].value_counts()
+        
+        # Créer le graphique avec les noms de langues traduits
+        lang_names = [language_map.get(lang, lang) for lang in lang_counts.index]
+        
+        fig_langs = px.bar(
+            x=lang_counts.values,
+            y=lang_names,
+            orientation='h',
+            title="Nombre de films par langue",
+            labels={'x': 'Nombre de films', 'y': 'Langue'}
+        )
+        fig_langs.update_layout(height=500)
+        st.plotly_chart(fig_langs, use_container_width=True)
+    
+    # Tableau des films les mieux notés
+    st.subheader("🏆 Top 10 des films les mieux notés")
+    top_films = df_main.nlargest(10, 'averageRating')[['title_x', 'averageRating', 'runtime', 'numVotes']].round(2)
+    top_films.columns = ['Titre', 'Note moyenne', 'Durée (min)', 'Nombre de votes']
+    st.dataframe(top_films, use_container_width=True)
 
 # Pied de page
 st.markdown("---")
