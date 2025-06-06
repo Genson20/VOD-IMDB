@@ -14,30 +14,57 @@ st.set_page_config(
     layout="wide"
 )
 
-# Chargement de la base de données réelle
+# Chargement et nettoyage de la base de données réelle
 @st.cache_data
 def load_movies():
     try:
         # Charger le CSV réel
         df = pd.read_csv('df_main_clean.csv')
         
-        # Nettoyer et préparer les données
+        # 1. Nettoyer et préparer les données de base
         df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
         df['year'] = df['release_date'].dt.year
         
-        # Nettoyer les genres - convertir de string representation de liste vers string simple
+        # 2. Nettoyer les langues - garder uniquement les codes ISO valides
+        valid_languages = ['en', 'fr', 'es', 'de', 'it', 'ja', 'ko', 'zh', 'pt', 'ru', 'hi', 'ar', 'nl', 'sv', 'no', 'da', 'fi', 'pl', 'tr', 'th', 'vi']
+        df = df[df['original_language'].isin(valid_languages)]
+        
+        # 3. Nettoyer les genres
         df['genres_x'] = df['genres_x'].astype(str)
         df['genres_x'] = df['genres_x'].str.replace("[", "").str.replace("]", "").str.replace("'", "").str.replace('"', '')
         
-        # Assurer que les colonnes nécessaires existent et ont des types corrects
+        # 4. Colonnes numériques
         df['runtime'] = pd.to_numeric(df['runtime'], errors='coerce')
         df['averageRating'] = pd.to_numeric(df['averageRating'], errors='coerce')
         df['numVotes'] = pd.to_numeric(df['numVotes'], errors='coerce')
         
-        # Utiliser overview comme description
-        df['description'] = df['overview'].fillna('Description non disponible')
+        # 5. Filtrer les films avec poster_path valide
+        df = df[df['poster_path'].notna()]
+        df = df[df['poster_path'].str.startswith('/')]
+        df = df[df['poster_path'] != '']
         
-        # Ajouter des emojis basés sur les genres
+        # 6. Construire l'URL complète des affiches TMDB
+        df['poster_url'] = 'https://image.tmdb.org/t/p/w500' + df['poster_path']
+        
+        # 7. Supprimer les doublons basés sur titre, année et durée
+        df = df.drop_duplicates(subset=['title_x', 'year', 'runtime'], keep='first')
+        
+        # 8. Filtrer les films avec des données valides essentielles
+        df = df.dropna(subset=['title_x', 'genres_x', 'overview', 'runtime', 'averageRating'])
+        df = df[df['runtime'] > 0]
+        df = df[df['averageRating'] > 0]
+        
+        # 9. Conserver uniquement les colonnes utiles
+        columns_to_keep = [
+            'title_x', 'original_language', 'release_date', 'year', 'genres_x', 
+            'overview', 'poster_path', 'poster_url', 'runtime', 'averageRating', 'numVotes'
+        ]
+        df = df[columns_to_keep]
+        
+        # 10. Ajouter la description
+        df['description'] = df['overview']
+        
+        # 11. Ajouter des emojis pour la compatibilité avec l'interface existante
         def get_emoji_for_genre(genres):
             if pd.isna(genres):
                 return "🎬"
@@ -71,27 +98,11 @@ def load_movies():
         
         df['affiche'] = df['genres_x'].apply(get_emoji_for_genre)
         
-        # Filtrer les films avec des données valides
-        df = df.dropna(subset=['title_x', 'genres_x'])
-        df = df[df['runtime'] > 0]  # Éliminer les films sans durée
-        
         return df
         
     except Exception as e:
         st.error(f"Erreur lors du chargement des données: {e}")
-        # Fallback avec quelques données minimales
-        return pd.DataFrame({
-            'title_x': ['Erreur de chargement'],
-            'genres_x': ['Drama'],
-            'runtime': [120],
-            'original_language': ['en'],
-            'averageRating': [7.0],
-            'numVotes': [1000],
-            'release_date': [datetime.now()],
-            'year': [2024],
-            'description': ['Erreur lors du chargement de la base de données'],
-            'affiche': ['🎬']
-        })
+        return pd.DataFrame()
 
 # Fonction pour générer les horaires de séances
 @st.cache_data
@@ -220,7 +231,7 @@ upcoming_movies = generate_upcoming_movies()
 st.sidebar.title("🎬 CinéCreuse+")
 page = st.sidebar.selectbox(
     "Navigation",
-    ["🏠 Accueil", "🎯 Recommandations", "🎬 Programme", "👥 Administration"]
+    ["🏠 Accueil", "🎯 Recommandations", "🎬 Programme", "👥 Administration", "🧹 Base nettoyée"]
 )
 
 # ================================
@@ -531,6 +542,110 @@ elif page == "🎬 Programme":
     
     with col3:
         st.metric("🎟️ Films à venir", len(upcoming_movies))
+
+# ================================
+# PAGE BASE NETTOYÉE
+# ================================
+elif page == "🧹 Base nettoyée":
+    st.title("🧹 Base de données nettoyée")
+    st.markdown("---")
+    
+    # Afficher les statistiques de nettoyage
+    st.subheader("📊 Statistiques après nettoyage")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("🎬 Films total", len(df_main))
+    
+    with col2:
+        languages_count = df_main['original_language'].nunique()
+        st.metric("🌍 Langues", languages_count)
+    
+    with col3:
+        avg_rating = df_main['averageRating'].mean()
+        st.metric("⭐ Note moyenne", f"{avg_rating:.1f}/10")
+    
+    with col4:
+        films_with_posters = len(df_main[df_main['poster_url'].notna()])
+        st.metric("🖼️ Films avec affiches", films_with_posters)
+    
+    st.markdown("---")
+    
+    # Afficher 10 films avec leurs vraies affiches
+    st.subheader("🎬 Aperçu - 10 films avec affiches réelles TMDB")
+    
+    # Prendre les 10 films les mieux notés
+    top_10_movies = df_main.nlargest(10, 'averageRating')
+    
+    # Afficher en grille de 5 colonnes sur 2 rangées
+    for row in range(2):
+        cols = st.columns(5)
+        for col_idx in range(5):
+            movie_idx = row * 5 + col_idx
+            if movie_idx < len(top_10_movies):
+                movie = top_10_movies.iloc[movie_idx]
+                
+                with cols[col_idx]:
+                    # Afficher l'affiche réelle
+                    if pd.notna(movie['poster_url']):
+                        st.image(movie['poster_url'], width=150)
+                    else:
+                        st.write("🎬 Pas d'affiche")
+                    
+                    # Titre
+                    st.markdown(f"**{movie['title_x']}**")
+                    
+                    # Note
+                    st.write(f"⭐ {movie['averageRating']}/10")
+                    
+                    # Genre
+                    genre_short = movie['genres_x'][:20] + "..." if len(str(movie['genres_x'])) > 20 else movie['genres_x']
+                    st.write(f"🎭 {genre_short}")
+                    
+                    # Année
+                    st.write(f"📅 {movie['year']}")
+    
+    st.markdown("---")
+    
+    # Détails techniques du nettoyage
+    st.subheader("🔧 Détails du nettoyage effectué")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        **✅ Nettoyage réalisé:**
+        - Langues ISO valides uniquement
+        - Suppression des doublons (titre + année + durée)
+        - Films avec affiches TMDB valides seulement
+        - URLs d'affiches construites automatiquement
+        - Colonnes inutiles supprimées
+        """)
+    
+    with col2:
+        st.markdown("""
+        **📋 Colonnes conservées:**
+        - title_x (titre)
+        - original_language (langue)
+        - release_date / year (date/année)
+        - genres_x (genres)
+        - overview/description (résumé)
+        - poster_url (URL affiche TMDB)
+        - runtime, averageRating, numVotes
+        """)
+    
+    # Exemple d'affiche avec URL
+    if len(df_main) > 0:
+        sample_movie = df_main.iloc[0]
+        st.markdown("---")
+        st.subheader("🔗 Exemple d'URL d'affiche générée")
+        st.code(sample_movie['poster_url'])
+        
+        # Afficher quelques échantillons de données
+        st.subheader("📋 Échantillon de données nettoyées")
+        sample_data = df_main[['title_x', 'genres_x', 'averageRating', 'runtime', 'original_language']].head(5)
+        st.dataframe(sample_data, use_container_width=True)
 
 # ================================
 # PAGE ADMINISTRATION
