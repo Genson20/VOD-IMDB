@@ -322,9 +322,12 @@ if page == "🏠 Accueil":
                     if idx < 6:  # Limiter à 6 films par genre
                         with cols[idx]:
                             with st.container():
-                                # Affiche du film (emoji)
-                                st.markdown(f"<div style='text-align: center; font-size: 3em; margin-bottom: 10px;'>{movie['affiche']}</div>", 
-                                          unsafe_allow_html=True)
+                                # Affiche du film (image TMDB réelle)
+                                if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                                    st.image(movie['poster_url'], width=120)
+                                else:
+                                    st.markdown(f"<div style='text-align: center; font-size: 3em; margin-bottom: 10px;'>{movie['affiche']}</div>", 
+                                              unsafe_allow_html=True)
                                 
                                 # Titre du film
                                 st.markdown(f"**{movie['title_x']}**")
@@ -362,8 +365,12 @@ if page == "🏠 Accueil":
         cols = st.columns(6)
         for idx, (_, movie) in enumerate(popular_movies.iterrows()):
             with cols[idx]:
-                st.markdown(f"<div style='text-align: center; font-size: 2.5em;'>{movie['affiche']}</div>", 
-                          unsafe_allow_html=True)
+                # Afficher l'image TMDB réelle au lieu de l'emoji
+                if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                    st.image(movie['poster_url'], width=100)
+                else:
+                    st.markdown(f"<div style='text-align: center; font-size: 2.5em;'>{movie['affiche']}</div>", 
+                              unsafe_allow_html=True)
                 st.markdown(f"**{movie['title_x']}**")
                 st.write(f"⭐ {movie['averageRating']}/10")
                 st.write(f"👥 {movie['numVotes']:,} votes")
@@ -446,9 +453,12 @@ elif page == "🎬 Programme":
                             st.write(f"**Résumé:** {movie['description']}")
                         
                         with col2:
-                            # Affichage de l'affiche (emoji)
-                            st.markdown(f"<div style='text-align: center; font-size: 4em;'>{movie['affiche']}</div>", 
-                                      unsafe_allow_html=True)
+                            # Affichage de l'affiche (image TMDB réelle)
+                            if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                                st.image(movie['poster_url'], width=120)
+                            else:
+                                st.markdown(f"<div style='text-align: center; font-size: 4em;'>{movie['affiche']}</div>", 
+                                          unsafe_allow_html=True)
                         
                         # Horaires pour le jour sélectionné
                         if movie['title_x'] in showtimes_data and selected_date in showtimes_data[movie['title_x']]:
