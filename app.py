@@ -218,9 +218,9 @@ if page == "🏠 Accueil":
         for idx, (_, movie) in enumerate(featured_movies.iterrows()):
             with cols[idx]:
                 if movie['poster_url']:
-                    st.image(movie['poster_url'], use_container_width=True)
+                    st.image(movie['poster_url'], width=180)
                 else:
-                    st.info("🎬 Affiche non disponible")
+                    st.markdown('<div style="height: 270px; width: 180px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
                 
                 st.caption(f"**{movie['title_x']}**")
                 st.caption(f"⭐ {movie['averageRating']:.1f}/10")
@@ -295,7 +295,9 @@ if page == "🏠 Accueil":
                         for idx, (_, movie) in enumerate(page_movies.iterrows()):
                             with cols[idx]:
                                 if movie['poster_url'] and movie['poster_url'] != '':
-                                    st.image(movie['poster_url'], width=150)
+                                    st.image(movie['poster_url'], width=180)
+                                else:
+                                    st.markdown('<div style="height: 270px; width: 180px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
                                 st.write(f"**{movie['title_x']}**")
                                 st.write(f"⭐ {movie['averageRating']:.1f}")
                                 if st.button(f"▶ Regarder", key=f"watch_{movie['title_x']}_{genre}_{idx}"):
@@ -318,7 +320,9 @@ if page == "🏠 Accueil":
                         for idx, (_, movie) in enumerate(page_movies.iterrows()):
                             with cols[idx]:
                                 if movie['poster_url'] and movie['poster_url'] != '':
-                                    st.image(movie['poster_url'], width=150)
+                                    st.image(movie['poster_url'], width=180)
+                                else:
+                                    st.markdown('<div style="height: 270px; width: 180px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
                                 st.write(f"**{movie['title_x']}**")
                                 st.write(f"⭐ {movie['averageRating']:.1f}")
                                 if st.button(f"▶ Regarder", key=f"watch_{movie['title_x']}_{genre}_{idx}"):
@@ -438,11 +442,11 @@ elif page == "🎬 Catalogue":
                                     st.rerun()
                             else:
                                 # Mode normal
-                                st.image(movie['poster_url'], use_container_width=True)
+                                st.image(movie['poster_url'], width=180)
                                 st.caption(f"**{movie['title_x']}**")
                                 st.caption(f"⭐ {movie['averageRating']:.1f}/10")
                         else:
-                            st.info("🎬 Affiche non disponible")
+                            st.markdown('<div style="height: 270px; width: 180px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
                             st.caption(f"**{movie['title_x']}**")
 
 # ================================
@@ -527,7 +531,9 @@ elif page == "📺 Programmation TV":
             
             with col3:
                 if movie['poster_url']:
-                    st.image(movie['poster_url'], width=150)
+                    st.image(movie['poster_url'], width=180)
+                else:
+                    st.markdown('<div style="height: 270px; width: 180px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
                 
                 if st.button(f"🔔 Rappel", key=f"reminder_{i}"):
                     st.success(f"Rappel programmé pour {movie['title_x']} à {time_slot}")
