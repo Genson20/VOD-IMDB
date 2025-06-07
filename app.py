@@ -192,7 +192,7 @@ if page == "🏠 Accueil":
     st.subheader("🔍 Rechercher un film")
     
     # Champ de recherche
-    search_query = st.text_input("", placeholder="Tapez le nom d'un film...", key="home_search")
+    search_query = st.text_input("Recherche", placeholder="Tapez le nom d'un film...", key="home_search", label_visibility="collapsed")
     
     if search_query:
         # Recherche dans les titres
@@ -217,7 +217,7 @@ if page == "🏠 Accueil":
                     with cols[col_idx]:
                         if 'poster_path' in movie and pd.notna(movie['poster_path']):
                             poster_url = f"https://image.tmdb.org/t/p/w500{movie['poster_path']}"
-                            st.image(poster_url, use_column_width=True)
+                            st.image(poster_url, use_container_width=True)
                         else:
                             st.info("🎬 Affiche non disponible")
                         
@@ -248,7 +248,7 @@ if page == "🏠 Accueil":
                 with cols[col_idx]:
                     if 'poster_path' in movie and pd.notna(movie['poster_path']):
                         poster_url = f"https://image.tmdb.org/t/p/w500{movie['poster_path']}"
-                        st.image(poster_url, use_column_width=True)
+                        st.image(poster_url, use_container_width=True)
                     else:
                         st.info("🎬 Affiche non disponible")
                     
@@ -293,7 +293,7 @@ elif page == "🔍 Recherche":
                     with cols[col_idx]:
                         if 'poster_path' in movie and pd.notna(movie['poster_path']):
                             poster_url = f"https://image.tmdb.org/t/p/w500{movie['poster_path']}"
-                            st.image(poster_url, use_column_width=True)
+                            st.image(poster_url, use_container_width=True)
                         else:
                             st.info("🎬 Affiche non disponible")
                         
@@ -333,7 +333,7 @@ elif page == "🎬 Films populaires":
             for col_idx, (_, movie) in enumerate(popular_movies.iloc[start_idx:end_idx].iterrows()):
                 with cols[col_idx]:
                     if 'poster_url' in movie and pd.notna(movie['poster_url']):
-                        st.image(movie['poster_url'], use_column_width=True)
+                        st.image(movie['poster_url'], use_container_width=True)
                     else:
                         st.info("🎬 Affiche non disponible")
                     
