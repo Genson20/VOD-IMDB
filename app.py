@@ -260,6 +260,55 @@ if page == "🏠 Accueil":
                     st.caption(f"⭐ {movie['averageRating']:.1f}/10")
             
             st.markdown("---")
+    
+    # Section "Les plus populaires"
+    st.subheader("🔥 Les plus populaires")
+    
+    if not df_main.empty:
+        # Sélectionner les 6 films les plus populaires par note
+        popular_movies = df_main.nlargest(6, 'averageRating')
+        
+        # Créer 6 colonnes pour les affiches
+        cols = st.columns(6)
+        
+        for idx, (_, movie) in enumerate(popular_movies.iterrows()):
+            with cols[idx]:
+                if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                    unique_id = f"popular_{idx}_{hash(movie['poster_url']) % 10000}"
+                    poster_html = f'''
+                    <style>
+                    .poster-{unique_id} {{
+                        transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+                        cursor: pointer;
+                        border-radius: 8px;
+                        overflow: hidden;
+                        display: block;
+                    }}
+                    .poster-{unique_id}:hover {{
+                        transform: scale(1.25);
+                        box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+                        filter: brightness(1.2) contrast(1.1);
+                        z-index: 100;
+                    }}
+                    .poster-{unique_id} img {{
+                        width: 100%;
+                        height: auto;
+                        border-radius: 8px;
+                        display: block;
+                    }}
+                    </style>
+                    <div class="poster-{unique_id}">
+                        <img src="{movie['poster_url']}" alt="{movie['title_x']}" style="width: 100%; border-radius: 8px;">
+                    </div>
+                    '''
+                    st.markdown(poster_html, unsafe_allow_html=True)
+                else:
+                    st.info("🎬 Affiche non disponible")
+                
+                st.caption(f"**{movie['title_x']}**")
+                st.caption(f"⭐ {movie['averageRating']:.1f}/10")
+        
+        st.markdown("---")
 
 # ================================
 # PAGE CATALOGUE
