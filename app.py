@@ -251,10 +251,8 @@ if page == "🏠 Accueil":
             if len(genre_movies) > 0:
                 emoji = get_emoji_for_genre(genre)
                 
-                # Créer une section avec navigation
-                col_header1, col_header2, col_header3 = st.columns([1, 4, 1])
-                with col_header2:
-                    st.markdown(f"### {genre}")
+                # Titre de section aligné à gauche
+                st.markdown(f"### {genre}")
                 
                 # Prendre les 24 meilleurs films de ce genre
                 top_genre_movies = genre_movies.nlargest(24, 'averageRating')
