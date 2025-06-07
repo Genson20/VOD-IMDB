@@ -359,7 +359,7 @@ if page == "🏠 Accueil":
             # Bouton précédent à gauche
             with nav_cols[0]:
                 # Espacement calculé pour centrer le bouton au niveau de l'affiche
-                st.markdown("<div style='height: 180px;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='height: 250px;'></div>", unsafe_allow_html=True)
                 if current_page > 0:
                     st.markdown("""
                     <div style="text-align: center;">
@@ -416,7 +416,7 @@ if page == "🏠 Accueil":
             # Bouton suivant à droite
             with nav_cols[-1]:
                 # Espacement calculé pour centrer le bouton au niveau de l'affiche
-                st.markdown("<div style='height: 180px;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='height: 250px;'></div>", unsafe_allow_html=True)
                 if current_page < total_pages - 1:
                     st.markdown("""
                     <div style="text-align: center;">
