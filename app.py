@@ -266,8 +266,8 @@ logo_svg = """
     <rect x="3" y="68" width="4" height="6" fill="#1a1a1a" rx="1"/>
     <rect x="18" y="68" width="4" height="6" fill="#1a1a1a" rx="1"/>
   </g>
-  <text x="65" y="50" font-family="Arial Black, sans-serif" font-size="32" font-weight="bold" fill="url(#goldGradient)" filter="url(#glow)">CINÉ</text>
-  <text x="65" y="80" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#FFFFFF" opacity="0.9">CREUSE</text>
+  <text x="65" y="50" font-family="Arial Black, sans-serif" font-size="28" font-weight="bold" fill="url(#goldGradient)" filter="url(#glow)">CinéCreuse</text>
+  <text x="65" y="80" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" opacity="0.9">+</text>
   <g transform="translate(180, 25)">
     <circle cx="15" cy="15" r="20" fill="none" stroke="url(#goldGradient)" stroke-width="3"/>
     <line x1="15" y1="5" x2="15" y2="25" stroke="url(#goldGradient)" stroke-width="4" stroke-linecap="round"/>
@@ -292,7 +292,62 @@ page = st.sidebar.selectbox(
 # PAGE ACCUEIL
 # ================================
 if page == "🏠 Accueil":
-    st.title("🎬 CinéCreuse+")
+    # Logo principal de la page d'accueil
+    logo_accueil = """
+    <div style="display: flex; justify-content: center; margin: 20px 0;">
+        <svg width="400" height="150" viewBox="0 0 300 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="goldGradientMain" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+              <stop offset="50%" style="stop-color:#FFA500;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#FF8C00;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="darkGradientMain" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#333333;stop-opacity:1" />
+            </linearGradient>
+            <filter id="glowMain">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge> 
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <rect width="300" height="120" rx="15" ry="15" fill="url(#darkGradientMain)" stroke="#FFD700" stroke-width="2"/>
+          <g transform="translate(20, 20)">
+            <rect x="0" y="0" width="25" height="80" fill="url(#goldGradientMain)" rx="3"/>
+            <rect x="3" y="8" width="4" height="6" fill="#1a1a1a" rx="1"/>
+            <rect x="18" y="8" width="4" height="6" fill="#1a1a1a" rx="1"/>
+            <rect x="3" y="20" width="4" height="6" fill="#1a1a1a" rx="1"/>
+            <rect x="18" y="20" width="4" height="6" fill="#1a1a1a" rx="1"/>
+            <rect x="3" y="32" width="4" height="6" fill="#1a1a1a" rx="1"/>
+            <rect x="18" y="32" width="4" height="6" fill="#1a1a1a" rx="1"/>
+            <rect x="3" y="44" width="4" height="6" fill="#1a1a1a" rx="1"/>
+            <rect x="18" y="44" width="4" height="6" fill="#1a1a1a" rx="1"/>
+            <rect x="3" y="56" width="4" height="6" fill="#1a1a1a" rx="1"/>
+            <rect x="18" y="56" width="4" height="6" fill="#1a1a1a" rx="1"/>
+            <rect x="3" y="68" width="4" height="6" fill="#1a1a1a" rx="1"/>
+            <rect x="18" y="68" width="4" height="6" fill="#1a1a1a" rx="1"/>
+          </g>
+          <text x="65" y="50" font-family="Arial Black, sans-serif" font-size="28" font-weight="bold" fill="url(#goldGradientMain)" filter="url(#glowMain)">CinéCreuse</text>
+          <text x="65" y="80" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" opacity="0.9">+</text>
+          <g transform="translate(180, 25)">
+            <circle cx="15" cy="15" r="20" fill="none" stroke="url(#goldGradientMain)" stroke-width="3"/>
+            <line x1="15" y1="5" x2="15" y2="25" stroke="url(#goldGradientMain)" stroke-width="4" stroke-linecap="round"/>
+            <line x1="5" y1="15" x2="25" y2="15" stroke="url(#goldGradientMain)" stroke-width="4" stroke-linecap="round"/>
+          </g>
+          <g fill="url(#goldGradientMain)" opacity="0.8">
+            <polygon points="250,25 252,31 258,31 253,35 255,41 250,37 245,41 247,35 242,31 248,31" />
+            <polygon points="270,45 271,48 274,48 272,50 273,53 270,51 267,53 268,50 266,48 269,48" />
+            <polygon points="260,70 261,73 264,73 262,75 263,78 260,76 257,78 258,75 256,73 259,73" />
+          </g>
+          <text x="65" y="100" font-family="Arial, sans-serif" font-size="12" fill="#FFD700" opacity="0.7" font-style="italic">Votre plateforme cinéma</text>
+        </svg>
+    </div>
+    """
+    
+    st.markdown(logo_accueil, unsafe_allow_html=True)
     st.markdown("🎬 Bienvenue sur CinéCreuse+ ! Découvrez les films à l'affiche classés par genre.")
     st.markdown("---")
     

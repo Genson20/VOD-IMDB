@@ -45,11 +45,11 @@
     <rect x="18" y="68" width="4" height="6" fill="#1a1a1a" rx="1"/>
   </g>
   
-  <!-- Texte principal CINÉ -->
-  <text x="65" y="50" font-family="Arial Black, sans-serif" font-size="32" font-weight="bold" fill="url(#goldGradient)" filter="url(#glow)">CINÉ</text>
+  <!-- Texte principal CinéCreuse -->
+  <text x="65" y="50" font-family="Arial Black, sans-serif" font-size="28" font-weight="bold" fill="url(#goldGradient)" filter="url(#glow)">CinéCreuse</text>
   
-  <!-- Texte CREUSE -->
-  <text x="65" y="80" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#FFFFFF" opacity="0.9">CREUSE</text>
+  <!-- Symbole + -->
+  <text x="65" y="80" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" opacity="0.9">+</text>
   
   <!-- Symbole + stylisé -->
   <g transform="translate(180, 25)">
