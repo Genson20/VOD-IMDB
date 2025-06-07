@@ -229,355 +229,154 @@ df_users = load_users()
 showtimes_data = generate_showtimes()
 upcoming_movies = generate_upcoming_movies()
 
-# ================================
-# STYLE NETFLIX GLOBAL
-# ================================
-st.markdown("""
-<style>
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-/* Global Netflix dark theme */
-.stApp {
-    background-color: #141414 !important;
-    color: white !important;
-    font-family: 'Inter', sans-serif !important;
-}
-
-/* Hide default Streamlit elements */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
-.stSelectbox {display: none;}
-
-/* Netflix header */
-.netflix-header {
-    background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 100%);
-    padding: 15px 4%;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 999;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    backdrop-filter: blur(10px);
-}
-
-.netflix-logo {
-    font-size: 32px;
-    font-weight: 700;
-    color: #E50914;
-    text-decoration: none;
-    letter-spacing: -1px;
-}
-
-.netflix-nav {
-    display: flex;
-    gap: 25px;
-    align-items: center;
-}
-
-.nav-item {
-    color: #e5e5e5;
-    text-decoration: none;
-    font-weight: 400;
-    font-size: 14px;
-    transition: color 0.3s ease;
-    cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 4px;
-}
-
-.nav-item:hover, .nav-item.active {
-    color: #fff;
-    background: rgba(255,255,255,0.1);
-}
-
-/* Main content */
-.main-content {
-    margin-top: 70px;
-    padding: 20px 4%;
-    background-color: #141414;
-}
-
-/* Genre sections */
-.genre-section {
-    margin: 50px 0;
-}
-
-.genre-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 15px;
-    color: #fff;
-    padding-left: 4px;
-}
-
-/* Movie carousel container */
-.carousel-container {
-    position: relative;
-    overflow: hidden;
-    margin: 10px 0;
-}
-
-.movie-grid {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    padding: 10px 4px;
-    scrollbar-width: thin;
-    scrollbar-color: #333 transparent;
-}
-
-.movie-grid::-webkit-scrollbar {
-    height: 6px;
-}
-
-.movie-grid::-webkit-scrollbar-track {
-    background: #333;
-    border-radius: 10px;
-}
-
-.movie-grid::-webkit-scrollbar-thumb {
-    background: #666;
-    border-radius: 10px;
-}
-
-.movie-grid::-webkit-scrollbar-thumb:hover {
-    background: #999;
-}
-
-/* Movie cards */
-.movie-card {
-    flex: 0 0 auto;
-    width: 160px;
-    position: relative;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.movie-card:hover {
-    transform: scale(1.05) translateY(-5px);
-    z-index: 10;
-}
-
-.movie-poster {
-    width: 100%;
-    height: 240px;
-    object-fit: cover;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-}
-
-.movie-card:hover .movie-poster {
-    box-shadow: 0 8px 25px rgba(0,0,0,0.7);
-}
-
-.movie-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(transparent, rgba(0,0,0,0.9));
-    padding: 15px 8px 8px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.movie-card:hover .movie-overlay {
-    opacity: 1;
-}
-
-.movie-title {
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: #fff;
-    text-align: center;
-    line-height: 1.2;
-    max-height: 30px;
-    overflow: hidden;
-}
-
-.movie-rating {
-    font-size: 11px;
-    color: #46d369;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-    .netflix-header {
-        padding: 10px 20px;
-    }
-    .netflix-logo {
-        font-size: 24px;
-    }
-    .main-content {
-        padding: 15px 20px;
-        margin-top: 60px;
-    }
-    .movie-card {
-        width: 120px;
-    }
-    .movie-poster {
-        height: 180px;
-    }
-    .netflix-nav {
-        gap: 15px;
-    }
-    .nav-item {
-        font-size: 12px;
-        padding: 6px 8px;
-    }
-}
-
-@media (max-width: 480px) {
-    .movie-card {
-        width: 100px;
-    }
-    .movie-poster {
-        height: 150px;
-    }
-    .netflix-nav {
-        gap: 10px;
-    }
-}
-</style>
-""", unsafe_allow_html=True)
-
-# Navigation sélecteur caché (pour fonctionnalité backend)
-page = st.selectbox(
+# Sidebar Navigation
+st.sidebar.title("🎬 CinéCreuse+")
+page = st.sidebar.selectbox(
     "Navigation",
-    ["🏠 Accueil", "🎯 Recommandations", "🎬 Programme", "👥 Administration", "🧹 Base nettoyée"],
-    label_visibility="collapsed"
+    ["🏠 Accueil", "🎯 Recommandations", "🎬 Programme", "👥 Administration", "🧹 Base nettoyée"]
 )
 
 # ================================
 # PAGE ACCUEIL
 # ================================
 if page == "🏠 Accueil":
-    # Header Netflix
-    components.html(f"""
-    <div class="netflix-header">
-        <div class="netflix-logo">CinéCreuse+</div>
-        <nav class="netflix-nav">
-            <span class="nav-item active">Accueil</span>
-            <span class="nav-item">Genres</span>
-            <span class="nav-item">Nouveautés</span>
-            <span class="nav-item">Ma liste</span>
-            <span class="nav-item">Explorer</span>
-        </nav>
-    </div>
-    """, height=70)
+    st.title("🎬 CinéCreuse+")
+    st.markdown("🎬 Bienvenue sur CinéCreuse+ ! Découvrez les films à l'affiche classés par genre.")
+    st.markdown("---")
     
-    # Contenu principal avec style Netflix
-    st.markdown('<div class="main-content">', unsafe_allow_html=True)
+    # Affichage par genre dynamique
+    st.subheader("🎭 Catalogue par genres")
     
-    # Extraction des genres pour les sections
+    # Extraction des genres uniques
     all_genres = []
     for genres_str in df_main['genres_x'].dropna():
         if isinstance(genres_str, str):
             genres = [g.strip() for g in genres_str.split(',')]
             all_genres.extend(genres)
     
-    # Genres principaux Netflix-style
-    main_genres = ['Action', 'Drama', 'Comedy', 'Thriller', 'Romance', 'Crime', 'Adventure', 'Animation', 'Horror', 'Science Fiction']
+    # Compter les occurrences de chaque genre
+    genre_counts = {}
+    for genre in all_genres:
+        if genre in genre_counts:
+            genre_counts[genre] += 1
+        else:
+            genre_counts[genre] = 1
     
-    # Créer les sections par genre avec carrousel
-    for genre in main_genres:
-        # Filtrer les films du genre
+    # Trier par popularité et prendre les top genres
+    sorted_genres = sorted(genre_counts.items(), key=lambda x: x[1], reverse=True)
+    top_genres = [genre for genre, count in sorted_genres[:8]]
+    
+    # Genres prioritaires (assurer qu'ils sont inclus)
+    priority_genres = ['Action', 'Drama', 'Comedy', 'Thriller', 'Romance', 'Crime', 'Adventure', 'Animation']
+    
+    # Créer la liste finale des genres
+    final_genres = []
+    for genre in priority_genres:
+        if genre in [g for g, c in sorted_genres]:
+            final_genres.append(genre)
+    
+    # Ajouter d'autres genres populaires si nécessaire
+    for genre in top_genres:
+        if genre not in final_genres:
+            final_genres.append(genre)
+    
+    # Limiter à 10 genres maximum
+    final_genres = final_genres[:10]
+    
+    # CSS pour les effets hover
+    st.markdown("""
+    <style>
+    .movie-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 8px;
+    }
+    .movie-hover:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(229,9,20,0.4);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Afficher chaque section de genre avec navigation horizontale
+    for genre in final_genres:
+        # Filtrer les films par genre
         genre_movies = df_main[df_main["genres_x"].str.contains(genre, case=False, na=False)]
         
-        if len(genre_movies) >= 5:  # Minimum 5 films pour créer une section
-            # Prendre les 15 meilleurs films du genre
-            top_movies = genre_movies.nlargest(15, 'averageRating')
-            
-            # Créer le HTML pour le carrousel
-            carousel_html = f'''
-            <div class="genre-section">
-                <h2 class="genre-title">{genre}</h2>
-                <div class="carousel-container">
-                    <div class="movie-grid">
-            '''
-            
-            for idx, (_, movie) in enumerate(top_movies.iterrows()):
-                poster_url = movie['poster_url'] if 'poster_url' in movie and pd.notna(movie['poster_url']) else ''
-                title = str(movie['title_x']).replace('"', '&quot;').replace("'", "&#39;")
-                rating = float(movie['averageRating']) if pd.notna(movie['averageRating']) else 0
-                
-                carousel_html += f'''
-                <div class="movie-card">
-                    <img src="{poster_url}" alt="{title}" class="movie-poster" loading="lazy">
-                    <div class="movie-overlay">
-                        <div class="movie-title">{title}</div>
-                        <div class="movie-rating">
-                            <span>⭐</span>
-                            <span>{rating:.1f}</span>
-                        </div>
-                    </div>
-                </div>
-                '''
-            
-            carousel_html += '''
-                    </div>
-                </div>
-            </div>
-            '''
-            
-            # Afficher le carrousel
-            components.html(carousel_html, height=300)
-    
-    # Section films populaires
-    popular_movies = df_main.nlargest(15, 'numVotes')
-    
-    popular_html = '''
-    <div class="genre-section">
-        <h2 class="genre-title">🔥 Les plus populaires</h2>
-        <div class="carousel-container">
-            <div class="movie-grid">
-    '''
-    
-    for idx, (_, movie) in enumerate(popular_movies.iterrows()):
-        poster_url = movie['poster_url'] if 'poster_url' in movie and pd.notna(movie['poster_url']) else ''
-        title = str(movie['title_x']).replace('"', '&quot;').replace("'", "&#39;")
-        rating = float(movie['averageRating']) if pd.notna(movie['averageRating']) else 0
-        votes = int(movie['numVotes']) if pd.notna(movie['numVotes']) else 0
+        # Trier par note et prendre les 15 meilleurs
+        genre_movies = genre_movies.nlargest(15, 'averageRating')
         
-        popular_html += f'''
-        <div class="movie-card">
-            <img src="{poster_url}" alt="{title}" class="movie-poster" loading="lazy">
-            <div class="movie-overlay">
-                <div class="movie-title">{title}</div>
-                <div class="movie-rating">
-                    <span>⭐ {rating:.1f}</span>
-                    <span>👥 {votes:,}</span>
-                </div>
-            </div>
-        </div>
-        '''
+        if len(genre_movies) > 0:
+            st.markdown(f"### 🎭 {genre}")
+            
+            # Interface de pagination pour naviguer dans les 15 films
+            if 'current_page' not in st.session_state:
+                st.session_state.current_page = {}
+            if genre not in st.session_state.current_page:
+                st.session_state.current_page[genre] = 0
+            
+            # Calculer le nombre de pages (6 films par page)
+            films_per_page = 6
+            total_pages = (len(genre_movies) - 1) // films_per_page + 1
+            current_page = st.session_state.current_page[genre]
+            
+            # Navigation
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col1:
+                if st.button("⬅️ Précédent", key=f"prev_{genre}", disabled=current_page == 0):
+                    st.session_state.current_page[genre] = max(0, current_page - 1)
+                    st.rerun()
+            with col2:
+                st.write(f"Page {current_page + 1} sur {total_pages}")
+            with col3:
+                if st.button("Suivant ➡️", key=f"next_{genre}", disabled=current_page == total_pages - 1):
+                    st.session_state.current_page[genre] = min(total_pages - 1, current_page + 1)
+                    st.rerun()
+            
+            # Afficher les films de la page actuelle
+            start_idx = current_page * films_per_page
+            end_idx = min(start_idx + films_per_page, len(genre_movies))
+            page_movies = genre_movies.iloc[start_idx:end_idx]
+            
+            # Affichage en colonnes avec effets hover
+            cols = st.columns(min(len(page_movies), 6))
+            
+            for idx, (_, movie) in enumerate(page_movies.iterrows()):
+                with cols[idx]:
+                    # Container avec effet hover
+                    with st.container():
+                        # Affiche du film avec classe CSS hover
+                        if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                            st.markdown(f'<div class="movie-hover">', unsafe_allow_html=True)
+                            st.image(movie['poster_url'], width=150, use_container_width=True)
+                            st.markdown('</div>', unsafe_allow_html=True)
+                        
+                        # Titre du film
+                        st.markdown(f"**{movie['title_x']}**")
+                        
+                        # Note
+                        st.write(f"⭐ {movie['averageRating']:.1f}/10")
+            
+            st.markdown("---")
     
-    popular_html += '''
-            </div>
-        </div>
-    </div>
-    '''
+    # Section films populaires en fin de page
+    st.subheader("🔥 Les plus populaires")
+    popular_movies = df_main.nlargest(6, 'numVotes')
     
-    components.html(popular_html, height=300)
+    cols = st.columns(6)
+    for idx, (_, movie) in enumerate(popular_movies.iterrows()):
+        with cols[idx]:
+            # Afficher l'image TMDB réelle au lieu de l'emoji
+            if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                st.image(movie['poster_url'], width=100)
+            else:
+                st.markdown(f"<div style='text-align: center; font-size: 2.5em;'>{movie['affiche']}</div>", 
+                          unsafe_allow_html=True)
+            st.markdown(f"**{movie['title_x']}**")
+            st.write(f"⭐ {movie['averageRating']}/10")
+            st.write(f"👥 {movie['numVotes']:,} votes")
     
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Barre de recherche (maintenue pour fonctionnalité)
-    search_query = st.text_input("🔍 Rechercher un film", placeholder="Tapez le nom d'un film...", label_visibility="collapsed")
+    # Barre de recherche
+    search_query = st.text_input("🔍 Rechercher un film", placeholder="Tapez le nom d'un film...")
     
     # Si une recherche est effectuée, afficher les résultats de recherche
     if search_query:
