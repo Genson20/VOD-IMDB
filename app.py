@@ -208,7 +208,7 @@ if page == "🏠 Accueil":
     st.markdown("---")
     
     # Films populaires en vedette
-    st.subheader("🌟 À la une cette semaine")
+    st.subheader("À la une cette semaine")
     
     if not df_main.empty:
         # Sélectionner les 6 meilleurs films par note et popularité
@@ -232,7 +232,7 @@ if page == "🏠 Accueil":
     st.markdown("---")
     
     # Sélections par genre avec carrousel
-    st.subheader("🎬 Sélections par genre")
+    st.subheader("Sélections par genre")
     
     if not df_main.empty:
         # Extraire tous les genres uniques
@@ -254,7 +254,7 @@ if page == "🏠 Accueil":
                 # Créer une section avec navigation
                 col_header1, col_header2, col_header3 = st.columns([1, 4, 1])
                 with col_header2:
-                    st.markdown(f"### {emoji} {genre}")
+                    st.markdown(f"### {genre}")
                 
                 # Prendre les 24 meilleurs films de ce genre
                 top_genre_movies = genre_movies.nlargest(24, 'averageRating')
