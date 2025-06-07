@@ -356,13 +356,17 @@ if page == "🏠 Accueil":
             col_widths = [0.5] + [1] * num_movies + [0.5]
             nav_cols = st.columns(col_widths)
             
-            # Bouton précédent à gauche
+            # Bouton précédent à gauche avec positionnement absolu
             with nav_cols[0]:
-                # Espacement calculé pour centrer le bouton au niveau de l'affiche
-                st.markdown("<div style='height: 250px;'></div>", unsafe_allow_html=True)
                 if current_page > 0:
                     st.markdown("""
-                    <div style="text-align: center;">
+                    <div style="
+                        position: relative;
+                        height: 400px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">
                     """, unsafe_allow_html=True)
                     if st.button("⬅️", key=f"prev_{genre}_{idx}_home", help="Page précédente"):
                         st.session_state.current_page[genre] = max(0, current_page - 1)
@@ -413,13 +417,17 @@ if page == "🏠 Accueil":
                         # Note
                         st.write(f"⭐ {movie['averageRating']:.1f}/10")
             
-            # Bouton suivant à droite
+            # Bouton suivant à droite avec positionnement absolu
             with nav_cols[-1]:
-                # Espacement calculé pour centrer le bouton au niveau de l'affiche
-                st.markdown("<div style='height: 250px;'></div>", unsafe_allow_html=True)
                 if current_page < total_pages - 1:
                     st.markdown("""
-                    <div style="text-align: center;">
+                    <div style="
+                        position: relative;
+                        height: 400px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">
                     """, unsafe_allow_html=True)
                     if st.button("➡️", key=f"next_{genre}_{idx}_home", help="Page suivante"):
                         st.session_state.current_page[genre] = min(total_pages - 1, current_page + 1)
