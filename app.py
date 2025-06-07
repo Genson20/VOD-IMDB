@@ -430,9 +430,9 @@ if page == "🏠 Accueil":
                         display: block;
                     }}
                     .poster-{unique_id}:hover {{
-                        transform: scale(1.08);
-                        box-shadow: 0 12px 30px rgba(0,0,0,0.7);
-                        filter: brightness(1.1);
+                        transform: scale(1.15);
+                        box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+                        filter: brightness(1.15);
                         z-index: 100;
                     }}
                     .poster-{unique_id} img {{
