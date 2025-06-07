@@ -344,26 +344,29 @@ if page == "🏠 Accueil":
             total_pages = (len(genre_movies) - 1) // films_per_page + 1
             current_page = st.session_state.current_page[genre]
             
-            # Navigation avec clés uniques
-            col1, col2, col3 = st.columns([1, 2, 1])
-            with col1:
-                if st.button("⬅️ Précédent", key=f"prev_{genre}_{idx}_home", disabled=current_page == 0):
-                    st.session_state.current_page[genre] = max(0, current_page - 1)
-                    st.rerun()
-            with col2:
-                st.write(f"Page {current_page + 1} sur {total_pages}")
-            with col3:
-                if st.button("Suivant ➡️", key=f"next_{genre}_{idx}_home", disabled=current_page == total_pages - 1):
-                    st.session_state.current_page[genre] = min(total_pages - 1, current_page + 1)
-                    st.rerun()
-            
             # Afficher les films de la page actuelle
             start_idx = current_page * films_per_page
             end_idx = min(start_idx + films_per_page, len(genre_movies))
             page_movies = genre_movies.iloc[start_idx:end_idx]
             
-            # Affichage en colonnes avec effets hover
-            cols = st.columns(min(len(page_movies), 6))
+            # Créer une disposition avec boutons de navigation intégrés
+            num_movies = min(len(page_movies), 6)
+            
+            # Créer les colonnes : bouton précédent + films + bouton suivant
+            col_widths = [0.5] + [1] * num_movies + [0.5]
+            nav_cols = st.columns(col_widths)
+            
+            # Bouton précédent à gauche
+            with nav_cols[0]:
+                st.markdown("<div style='display: flex; align-items: center; height: 300px;'>", unsafe_allow_html=True)
+                if current_page > 0:
+                    if st.button("⬅️", key=f"prev_{genre}_{idx}_home", help="Page précédente"):
+                        st.session_state.current_page[genre] = max(0, current_page - 1)
+                        st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
+            
+            # Films au centre
+            cols = nav_cols[1:num_movies+1]
             
             for movie_idx, (_, movie) in enumerate(page_movies.iterrows()):
                 with cols[movie_idx]:
@@ -405,6 +408,18 @@ if page == "🏠 Accueil":
                         
                         # Note
                         st.write(f"⭐ {movie['averageRating']:.1f}/10")
+            
+            # Bouton suivant à droite
+            with nav_cols[-1]:
+                st.markdown("<div style='display: flex; align-items: center; height: 300px;'>", unsafe_allow_html=True)
+                if current_page < total_pages - 1:
+                    if st.button("➡️", key=f"next_{genre}_{idx}_home", help="Page suivante"):
+                        st.session_state.current_page[genre] = min(total_pages - 1, current_page + 1)
+                        st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
+            
+            # Indicateur de page centré
+            st.markdown(f"<div style='text-align: center; margin: 10px 0; color: #888;'>Page {current_page + 1} sur {total_pages}</div>", unsafe_allow_html=True)
             
             st.markdown("---")
     
