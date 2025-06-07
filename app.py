@@ -289,16 +289,25 @@ if page == "🏠 Accueil":
     .movie-hover {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
     }
     .movie-hover:hover {
-        transform: scale(1.05);
-        box-shadow: 0 8px 25px rgba(229,9,20,0.4);
+        transform: scale(1.08);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+        z-index: 10;
+    }
+    .movie-hover img {
+        transition: all 0.3s ease;
+    }
+    .movie-hover:hover img {
+        filter: brightness(1.1);
     }
     </style>
     """, unsafe_allow_html=True)
     
     # Afficher chaque section de genre avec navigation horizontale
-    for genre in final_genres:
+    for idx, genre in enumerate(final_genres):
         # Filtrer les films par genre
         genre_movies = df_main[df_main["genres_x"].str.contains(genre, case=False, na=False)]
         
@@ -319,16 +328,16 @@ if page == "🏠 Accueil":
             total_pages = (len(genre_movies) - 1) // films_per_page + 1
             current_page = st.session_state.current_page[genre]
             
-            # Navigation
+            # Navigation avec clés uniques
             col1, col2, col3 = st.columns([1, 2, 1])
             with col1:
-                if st.button("⬅️ Précédent", key=f"prev_{genre}", disabled=current_page == 0):
+                if st.button("⬅️ Précédent", key=f"prev_{genre}_{idx}_home", disabled=current_page == 0):
                     st.session_state.current_page[genre] = max(0, current_page - 1)
                     st.rerun()
             with col2:
                 st.write(f"Page {current_page + 1} sur {total_pages}")
             with col3:
-                if st.button("Suivant ➡️", key=f"next_{genre}", disabled=current_page == total_pages - 1):
+                if st.button("Suivant ➡️", key=f"next_{genre}_{idx}_home", disabled=current_page == total_pages - 1):
                     st.session_state.current_page[genre] = min(total_pages - 1, current_page + 1)
                     st.rerun()
             
@@ -340,8 +349,8 @@ if page == "🏠 Accueil":
             # Affichage en colonnes avec effets hover
             cols = st.columns(min(len(page_movies), 6))
             
-            for idx, (_, movie) in enumerate(page_movies.iterrows()):
-                with cols[idx]:
+            for movie_idx, (_, movie) in enumerate(page_movies.iterrows()):
+                with cols[movie_idx]:
                     # Container avec effet hover
                     with st.container():
                         # Affiche du film avec classe CSS hover
@@ -365,15 +374,23 @@ if page == "🏠 Accueil":
     cols = st.columns(6)
     for idx, (_, movie) in enumerate(popular_movies.iterrows()):
         with cols[idx]:
-            # Afficher l'image TMDB réelle au lieu de l'emoji
-            if 'poster_url' in movie and pd.notna(movie['poster_url']):
-                st.image(movie['poster_url'], width=100)
-            else:
-                st.markdown(f"<div style='text-align: center; font-size: 2.5em;'>{movie['affiche']}</div>", 
-                          unsafe_allow_html=True)
-            st.markdown(f"**{movie['title_x']}**")
-            st.write(f"⭐ {movie['averageRating']}/10")
-            st.write(f"👥 {movie['numVotes']:,} votes")
+            # Container avec effet hover
+            with st.container():
+                # Affiche du film avec classe CSS hover
+                if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                    st.markdown(f'<div class="movie-hover">', unsafe_allow_html=True)
+                    st.image(movie['poster_url'], width=100, use_container_width=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div style='text-align: center; font-size: 2.5em;'>{movie['affiche']}</div>", 
+                              unsafe_allow_html=True)
+                
+                # Titre du film
+                st.markdown(f"**{movie['title_x']}**")
+                
+                # Note et votes
+                st.write(f"⭐ {movie['averageRating']}/10")
+                st.write(f"👥 {movie['numVotes']:,} votes")
     
     # Barre de recherche
     search_query = st.text_input("🔍 Rechercher un film", placeholder="Tapez le nom d'un film...")
