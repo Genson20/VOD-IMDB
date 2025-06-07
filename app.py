@@ -468,9 +468,9 @@ elif page == "🔍 Recherche":
                 for col_idx, (_, movie) in enumerate(search_results.iloc[start_idx:end_idx].iterrows()):
                     with cols[col_idx]:
                         if movie['poster_url']:
-                            st.image(movie['poster_url'], use_container_width=True)
+                            st.image(movie['poster_url'], width=180)
                         else:
-                            st.info("🎬 Affiche non disponible")
+                            st.markdown('<div style="height: 270px; width: 180px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
                         
                         st.caption(f"**{movie['title_x']}**")
                         if pd.notna(movie['year']):
