@@ -224,10 +224,6 @@ if page == "🏠 Accueil":
                 
                 st.caption(f"**{movie['title_x']}**")
                 st.caption(f"⭐ {movie['averageRating']:.1f}/10")
-                
-                # Bouton pour plus d'infos (simulation)
-                if st.button(f"▶️ Regarder", key=f"watch_{idx}"):
-                    st.success(f"Lecture de '{movie['title_x']}' démarrée!")
 
     st.markdown("---")
     
@@ -300,8 +296,6 @@ if page == "🏠 Accueil":
                                     st.markdown('<div style="height: 270px; width: 180px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
                                 st.write(f"**{movie['title_x']}**")
                                 st.write(f"⭐ {movie['averageRating']:.1f}")
-                                if st.button(f"▶ Regarder", key=f"watch_{movie['title_x']}_{genre}_{idx}"):
-                                    st.success(f"Lecture de '{movie['title_x']}' démarrée!")
                 else:
                     # Mode première page - alignement à gauche
                     col_movies, col_nav2 = st.columns([10, 1])
@@ -325,8 +319,6 @@ if page == "🏠 Accueil":
                                     st.markdown('<div style="height: 270px; width: 180px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
                                 st.write(f"**{movie['title_x']}**")
                                 st.write(f"⭐ {movie['averageRating']:.1f}")
-                                if st.button(f"▶ Regarder", key=f"watch_{movie['title_x']}_{genre}_{idx}"):
-                                    st.success(f"Lecture de '{movie['title_x']}' démarrée!")
                 
                 # Indicateur de page
                 st.markdown(f"<div style='text-align: center; color: #666; margin: 10px 0;'>Page {current_page + 1} sur {total_pages}</div>", unsafe_allow_html=True)
@@ -435,8 +427,7 @@ elif page == "🎬 Catalogue":
                                 st.markdown(f"🎭 {movie['genres_x']}")
                                 with st.expander("📝 Description"):
                                     st.write(movie['description'])
-                                if st.button("▶️ Regarder maintenant", key=f"play_{movie.name}"):
-                                    st.success(f"Lecture de '{movie['title_x']}' démarrée!")
+
                                 if st.button("❌ Fermer", key=f"close_{movie.name}"):
                                     st.session_state[f"zoom_movie_{movie.name}"] = False
                                     st.rerun()
