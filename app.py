@@ -358,12 +358,12 @@ if page == "🏠 Accueil":
             
             # Bouton précédent à gauche
             with nav_cols[0]:
-                st.markdown("<div style='display: flex; align-items: center; justify-content: center; height: 400px;'>", unsafe_allow_html=True)
+                # Espacement pour aligner avec les images
+                st.markdown("<br><br><br><br><br><br>", unsafe_allow_html=True)
                 if current_page > 0:
                     if st.button("⬅️", key=f"prev_{genre}_{idx}_home", help="Page précédente"):
                         st.session_state.current_page[genre] = max(0, current_page - 1)
                         st.rerun()
-                st.markdown("</div>", unsafe_allow_html=True)
             
             # Films au centre
             cols = nav_cols[1:num_movies+1]
@@ -411,12 +411,12 @@ if page == "🏠 Accueil":
             
             # Bouton suivant à droite
             with nav_cols[-1]:
-                st.markdown("<div style='display: flex; align-items: center; justify-content: center; height: 400px;'>", unsafe_allow_html=True)
+                # Espacement pour aligner avec les images
+                st.markdown("<br><br><br><br><br><br>", unsafe_allow_html=True)
                 if current_page < total_pages - 1:
                     if st.button("➡️", key=f"next_{genre}_{idx}_home", help="Page suivante"):
                         st.session_state.current_page[genre] = min(total_pages - 1, current_page + 1)
                         st.rerun()
-                st.markdown("</div>", unsafe_allow_html=True)
             
             # Indicateur de page centré
             st.markdown(f"<div style='text-align: center; margin: 10px 0; color: #888;'>Page {current_page + 1} sur {total_pages}</div>", unsafe_allow_html=True)
