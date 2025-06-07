@@ -265,41 +265,64 @@ if page == "🏠 Accueil":
                 total_pages = len(top_genre_movies) // movies_per_page
                 current_page = st.session_state[f"{genre}_page"]
                 
-                # Navigation avec boutons sur les côtés alignés au centre
-                col_nav1, col_movies, col_nav2 = st.columns([1, 10, 1])
+                # Navigation avec boutons alignés dynamiquement
+                start_idx = current_page * movies_per_page
+                end_idx = min(start_idx + movies_per_page, len(top_genre_movies))
+                page_movies = top_genre_movies.iloc[start_idx:end_idx]
                 
-                with col_nav1:
-                    # Espacement vertical de 60px
-                    st.markdown('<div style="height: 60px;"></div>', unsafe_allow_html=True)
-                    if current_page > 0:
+                if current_page > 0:
+                    # Mode normal avec boutons des deux côtés
+                    col_nav1, col_movies, col_nav2 = st.columns([1, 10, 1])
+                    
+                    with col_nav1:
+                        # Espacement vertical de 60px
+                        st.markdown('<div style="height: 60px;"></div>', unsafe_allow_html=True)
                         if st.button("◀", key=f"prev_{genre}"):
                             st.session_state[f"{genre}_page"] -= 1
                             st.rerun()
-                
-                with col_nav2:
-                    # Espacement vertical de 60px
-                    st.markdown('<div style="height: 60px;"></div>', unsafe_allow_html=True)
-                    if current_page < total_pages - 1:
-                        if st.button("▶", key=f"next_{genre}"):
-                            st.session_state[f"{genre}_page"] += 1
-                            st.rerun()
-                
-                with col_movies:
-                    # Afficher les films de la page courante
-                    start_idx = current_page * movies_per_page
-                    end_idx = min(start_idx + movies_per_page, len(top_genre_movies))
-                    page_movies = top_genre_movies.iloc[start_idx:end_idx]
                     
-                    cols = st.columns(6)
-                    for idx, (_, movie) in enumerate(page_movies.iterrows()):
-                        with cols[idx]:
-                            if movie['poster_url']:
-                                st.image(movie['poster_url'], use_container_width=True)
-                            else:
-                                st.info("🎬 Affiche non disponible")
-                            
-                            st.caption(f"**{movie['title_x']}**")
-                            st.caption(f"⭐ {movie['averageRating']:.1f}/10")
+                    with col_nav2:
+                        # Espacement vertical de 60px
+                        st.markdown('<div style="height: 60px;"></div>', unsafe_allow_html=True)
+                        if current_page < total_pages - 1:
+                            if st.button("▶", key=f"next_{genre}"):
+                                st.session_state[f"{genre}_page"] += 1
+                                st.rerun()
+                    
+                    with col_movies:
+                        # Afficher films avec colonnes centrées
+                        cols = st.columns(6)
+                        for idx, (_, movie) in enumerate(page_movies.iterrows()):
+                            with cols[idx]:
+                                if movie['poster_url'] and movie['poster_url'] != '':
+                                    st.image(movie['poster_url'], width=150)
+                                st.write(f"**{movie['title_x']}**")
+                                st.write(f"⭐ {movie['averageRating']:.1f}")
+                                if st.button(f"▶ Regarder", key=f"watch_{movie['title_x']}_{genre}_{idx}"):
+                                    st.success(f"Lecture de '{movie['title_x']}' démarrée!")
+                else:
+                    # Mode première page - alignement à gauche
+                    col_movies, col_nav2 = st.columns([10, 1])
+                    
+                    with col_nav2:
+                        # Espacement vertical de 60px
+                        st.markdown('<div style="height: 60px;"></div>', unsafe_allow_html=True)
+                        if current_page < total_pages - 1:
+                            if st.button("▶", key=f"next_{genre}"):
+                                st.session_state[f"{genre}_page"] += 1
+                                st.rerun()
+                    
+                    with col_movies:
+                        # Afficher films alignés à gauche
+                        cols = st.columns([2, 2, 2, 2, 2, 2, 2, 2, 2, 2])  # 10 colonnes pour alignement à gauche
+                        for idx, (_, movie) in enumerate(page_movies.iterrows()):
+                            with cols[idx]:
+                                if movie['poster_url'] and movie['poster_url'] != '':
+                                    st.image(movie['poster_url'], width=150)
+                                st.write(f"**{movie['title_x']}**")
+                                st.write(f"⭐ {movie['averageRating']:.1f}")
+                                if st.button(f"▶ Regarder", key=f"watch_{movie['title_x']}_{genre}_{idx}"):
+                                    st.success(f"Lecture de '{movie['title_x']}' démarrée!")
                 
                 # Indicateur de page
                 st.markdown(f"<div style='text-align: center; color: #666; margin: 10px 0;'>Page {current_page + 1} sur {total_pages}</div>", unsafe_allow_html=True)
