@@ -358,8 +358,8 @@ if page == "🏠 Accueil":
             
             # Bouton précédent à gauche
             with nav_cols[0]:
-                # Espacement pour aligner au centre des affiches (hauteur médiane)
-                st.markdown("<div style='height: 160px;'></div>", unsafe_allow_html=True)
+                # Espacement pour aligner au centre vertical de l'affiche (mi-hauteur de l'image)
+                st.markdown("<div style='height: 220px;'></div>", unsafe_allow_html=True)
                 if current_page > 0:
                     if st.button("⬅️", key=f"prev_{genre}_{idx}_home", help="Page précédente"):
                         st.session_state.current_page[genre] = max(0, current_page - 1)
@@ -411,8 +411,8 @@ if page == "🏠 Accueil":
             
             # Bouton suivant à droite
             with nav_cols[-1]:
-                # Espacement pour aligner au centre des affiches (hauteur médiane)
-                st.markdown("<div style='height: 160px;'></div>", unsafe_allow_html=True)
+                # Espacement pour aligner au centre vertical de l'affiche (mi-hauteur de l'image)
+                st.markdown("<div style='height: 220px;'></div>", unsafe_allow_html=True)
                 if current_page < total_pages - 1:
                     if st.button("➡️", key=f"next_{genre}_{idx}_home", help="Page suivante"):
                         st.session_state.current_page[genre] = min(total_pages - 1, current_page + 1)
