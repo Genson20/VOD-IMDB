@@ -320,8 +320,6 @@ if page == "🏠 Accueil":
                                 st.write(f"**{movie['title_x']}**")
                                 st.write(f"⭐ {movie['averageRating']:.1f}")
                 
-                # Indicateur de page
-                st.markdown(f"<div style='text-align: center; color: #666; margin: 10px 0;'>Page {current_page + 1} sur {total_pages}</div>", unsafe_allow_html=True)
                 st.markdown("---")
 
 # ================================
