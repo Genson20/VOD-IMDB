@@ -266,8 +266,7 @@ logo_svg = """
     <rect x="3" y="68" width="4" height="6" fill="#1a1a1a" rx="1"/>
     <rect x="18" y="68" width="4" height="6" fill="#1a1a1a" rx="1"/>
   </g>
-  <text x="65" y="50" font-family="Arial Black, sans-serif" font-size="28" font-weight="bold" fill="url(#goldGradient)" filter="url(#glow)">CinéCreuse</text>
-  <text x="65" y="80" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" opacity="0.9">+</text>
+  <text x="65" y="60" font-family="Arial Black, sans-serif" font-size="24" font-weight="bold" fill="url(#goldGradient)" filter="url(#glow)">CinéCreuse+</text>
   <g transform="translate(180, 25)">
     <circle cx="15" cy="15" r="20" fill="none" stroke="url(#goldGradient)" stroke-width="3"/>
     <line x1="15" y1="5" x2="15" y2="25" stroke="url(#goldGradient)" stroke-width="4" stroke-linecap="round"/>
@@ -330,8 +329,7 @@ if page == "🏠 Accueil":
             <rect x="3" y="68" width="4" height="6" fill="#1a1a1a" rx="1"/>
             <rect x="18" y="68" width="4" height="6" fill="#1a1a1a" rx="1"/>
           </g>
-          <text x="65" y="50" font-family="Arial Black, sans-serif" font-size="28" font-weight="bold" fill="url(#goldGradientMain)" filter="url(#glowMain)">CinéCreuse</text>
-          <text x="65" y="80" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" opacity="0.9">+</text>
+          <text x="65" y="65" font-family="Arial Black, sans-serif" font-size="26" font-weight="bold" fill="url(#goldGradientMain)" filter="url(#glowMain)">CinéCreuse+</text>
           <g transform="translate(180, 25)">
             <circle cx="15" cy="15" r="20" fill="none" stroke="url(#goldGradientMain)" stroke-width="3"/>
             <line x1="15" y1="5" x2="15" y2="25" stroke="url(#goldGradientMain)" stroke-width="4" stroke-linecap="round"/>
