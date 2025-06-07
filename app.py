@@ -227,100 +227,69 @@ if page == "🏠 Accueil":
 
     st.markdown("---")
     
-    # Sélections par genre avec carrousel
-    st.subheader("Sélections par genre")
+    # Sélections par genre
+    genres_dict = {
+        "🎬 Action": "Action",
+        "😂 Comédie": "Comedy", 
+        "🎭 Drame": "Drama",
+        "👻 Horreur": "Horror",
+        "💕 Romance": "Romance",
+        "🔥 Thriller": "Thriller",
+        "🗡️ Aventure": "Adventure",
+        "🚀 Science-Fiction": "Sci-Fi"
+    }
     
-    if not df_main.empty:
-        # Extraire tous les genres uniques
-        all_genres = []
-        for genres_str in df_main['genres_x'].dropna():
-            genres_list = str(genres_str).split(', ')
-            all_genres.extend(genres_list)
+    for emoji_genre, genre in genres_dict.items():
+        # Filtrer les films par genre
+        genre_movies = df_main[df_main['genres_x'].str.contains(genre, case=False, na=False)]
         
-        unique_genres = list(set(all_genres))
-        popular_genres = sorted(unique_genres)[:6]  # Prendre les 6 premiers genres
-        
-        for genre in popular_genres:
-            # Filtrer les films de ce genre
-            genre_movies = df_main[df_main['genres_x'].str.contains(genre, na=False)]
+        if not genre_movies.empty:
+            # Afficher les meilleurs films du genre
+            top_genre_movies = genre_movies.nlargest(6, 'averageRating')
             
-            if len(genre_movies) > 0:
-                emoji = get_emoji_for_genre(genre)
-                
-                # Titre de section aligné à gauche
-                st.markdown(f"### {genre}")
-                
-                # Prendre les 24 meilleurs films de ce genre
-                top_genre_movies = genre_movies.nlargest(24, 'averageRating')
-                
-                # Initialize session state for this genre
-                if f"{genre}_page" not in st.session_state:
-                    st.session_state[f"{genre}_page"] = 0
-                
-                movies_per_page = 6
-                total_pages = len(top_genre_movies) // movies_per_page
-                current_page = st.session_state[f"{genre}_page"]
-                
-                # Navigation avec boutons alignés dynamiquement
-                start_idx = current_page * movies_per_page
-                end_idx = min(start_idx + movies_per_page, len(top_genre_movies))
-                page_movies = top_genre_movies.iloc[start_idx:end_idx]
-                
-                if current_page > 0:
-                    # Mode normal avec boutons des deux côtés
-                    col_nav1, col_movies, col_nav2 = st.columns([1, 10, 1])
+            st.subheader(emoji_genre)
+            
+            # Créer 6 colonnes pour les affiches
+            cols = st.columns(6)
+            
+            for idx, (_, movie) in enumerate(top_genre_movies.iterrows()):
+                with cols[idx]:
+                    if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                        unique_id = f"{genre}_{idx}_{hash(movie['poster_url']) % 10000}"
+                        poster_html = f'''
+                        <style>
+                        .poster-{unique_id} {{
+                            transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+                            cursor: pointer;
+                            border-radius: 8px;
+                            overflow: hidden;
+                            display: block;
+                        }}
+                        .poster-{unique_id}:hover {{
+                            transform: scale(1.25);
+                            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+                            filter: brightness(1.2) contrast(1.1);
+                            z-index: 100;
+                        }}
+                        .poster-{unique_id} img {{
+                            width: 100%;
+                            height: auto;
+                            border-radius: 8px;
+                            display: block;
+                        }}
+                        </style>
+                        <div class="poster-{unique_id}">
+                            <img src="{movie['poster_url']}" alt="{movie['title_x']}" style="width: 100%; border-radius: 8px;">
+                        </div>
+                        '''
+                        st.markdown(poster_html, unsafe_allow_html=True)
+                    else:
+                        st.info("🎬 Affiche non disponible")
                     
-                    with col_nav1:
-                        # Espacement vertical de 60px
-                        st.markdown('<div style="height: 60px;"></div>', unsafe_allow_html=True)
-                        if st.button("◀", key=f"prev_{genre}"):
-                            st.session_state[f"{genre}_page"] -= 1
-                            st.rerun()
-                    
-                    with col_nav2:
-                        # Espacement vertical de 60px
-                        st.markdown('<div style="height: 60px;"></div>', unsafe_allow_html=True)
-                        if current_page < total_pages - 1:
-                            if st.button("▶", key=f"next_{genre}"):
-                                st.session_state[f"{genre}_page"] += 1
-                                st.rerun()
-                    
-                    with col_movies:
-                        # Afficher films avec colonnes centrées
-                        cols = st.columns(6)
-                        for idx, (_, movie) in enumerate(page_movies.iterrows()):
-                            with cols[idx]:
-                                if movie['poster_url'] and movie['poster_url'] != '':
-                                    st.image(movie['poster_url'], width=180)
-                                else:
-                                    st.markdown('<div style="height: 270px; width: 180px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
-                                st.write(f"**{movie['title_x']}**")
-                                st.write(f"⭐ {movie['averageRating']:.1f}")
-                else:
-                    # Mode première page - alignement à gauche
-                    col_movies, col_nav2 = st.columns([10, 1])
-                    
-                    with col_nav2:
-                        # Espacement vertical de 60px
-                        st.markdown('<div style="height: 60px;"></div>', unsafe_allow_html=True)
-                        if current_page < total_pages - 1:
-                            if st.button("▶", key=f"next_{genre}"):
-                                st.session_state[f"{genre}_page"] += 1
-                                st.rerun()
-                    
-                    with col_movies:
-                        # Afficher films alignés à gauche
-                        cols = st.columns([2, 2, 2, 2, 2, 2, 2, 2, 2, 2])  # 10 colonnes pour alignement à gauche
-                        for idx, (_, movie) in enumerate(page_movies.iterrows()):
-                            with cols[idx]:
-                                if movie['poster_url'] and movie['poster_url'] != '':
-                                    st.image(movie['poster_url'], width=180)
-                                else:
-                                    st.markdown('<div style="height: 270px; width: 180px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
-                                st.write(f"**{movie['title_x']}**")
-                                st.write(f"⭐ {movie['averageRating']:.1f}")
-                
-                st.markdown("---")
+                    st.caption(f"**{movie['title_x']}**")
+                    st.caption(f"⭐ {movie['averageRating']:.1f}/10")
+            
+            st.markdown("---")
 
 # ================================
 # PAGE CATALOGUE
