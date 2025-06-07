@@ -358,7 +358,7 @@ if page == "🏠 Accueil":
             
             # Bouton précédent à gauche
             with nav_cols[0]:
-                st.markdown("<div style='height: 120px;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='height: 100px;'></div>", unsafe_allow_html=True)
                 if current_page > 0:
                     if st.button("⬅️", key=f"prev_{genre}_{idx}_home", help="Page précédente"):
                         st.session_state.current_page[genre] = max(0, current_page - 1)
@@ -410,7 +410,7 @@ if page == "🏠 Accueil":
             
             # Bouton suivant à droite
             with nav_cols[-1]:
-                st.markdown("<div style='height: 120px;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='height: 100px;'></div>", unsafe_allow_html=True)
                 if current_page < total_pages - 1:
                     if st.button("➡️", key=f"next_{genre}_{idx}_home", help="Page suivante"):
                         st.session_state.current_page[genre] = min(total_pages - 1, current_page + 1)
