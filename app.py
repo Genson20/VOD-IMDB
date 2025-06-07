@@ -224,7 +224,34 @@ if page == "🏠 Accueil":
                 for idx, (_, movie) in enumerate(page_movies.iterrows()):
                     with cols[idx]:
                         if movie['poster_url']:
-                            st.image(movie['poster_url'], width=180)
+                            unique_id = f"featured_{current_page}_{idx}_{hash(movie['poster_url']) % 10000}"
+                            poster_html = f'''
+                            <style>
+                            .poster-{unique_id} {{
+                                transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+                                cursor: pointer;
+                                border-radius: 8px;
+                                overflow: hidden;
+                                display: block;
+                            }}
+                            .poster-{unique_id}:hover {{
+                                transform: scale(1.25);
+                                box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+                                filter: brightness(1.2) contrast(1.1);
+                                z-index: 100;
+                            }}
+                            .poster-{unique_id} img {{
+                                width: 100%;
+                                height: auto;
+                                border-radius: 8px;
+                                display: block;
+                            }}
+                            </style>
+                            <div class="poster-{unique_id}">
+                                <img src="{movie['poster_url']}" alt="{movie['title_x']}" style="width: 180px; border-radius: 8px;">
+                            </div>
+                            '''
+                            st.markdown(poster_html, unsafe_allow_html=True)
                         else:
                             st.markdown('<div style="height: 270px; width: 180px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
                         st.caption(f"**{movie['title_x']}**")
@@ -247,7 +274,34 @@ if page == "🏠 Accueil":
                 for idx, (_, movie) in enumerate(page_movies.iterrows()):
                     with cols[idx]:
                         if movie['poster_url']:
-                            st.image(movie['poster_url'], width=180)
+                            unique_id = f"featured_{current_page}_{idx}_{hash(movie['poster_url']) % 10000}"
+                            poster_html = f'''
+                            <style>
+                            .poster-{unique_id} {{
+                                transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+                                cursor: pointer;
+                                border-radius: 8px;
+                                overflow: hidden;
+                                display: block;
+                            }}
+                            .poster-{unique_id}:hover {{
+                                transform: scale(1.25);
+                                box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+                                filter: brightness(1.2) contrast(1.1);
+                                z-index: 100;
+                            }}
+                            .poster-{unique_id} img {{
+                                width: 100%;
+                                height: auto;
+                                border-radius: 8px;
+                                display: block;
+                            }}
+                            </style>
+                            <div class="poster-{unique_id}">
+                                <img src="{movie['poster_url']}" alt="{movie['title_x']}" style="width: 180px; border-radius: 8px;">
+                            </div>
+                            '''
+                            st.markdown(poster_html, unsafe_allow_html=True)
                         else:
                             st.markdown('<div style="height: 270px; width: 180px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
                         st.caption(f"**{movie['title_x']}**")
