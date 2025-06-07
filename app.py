@@ -122,8 +122,51 @@ def create_poster_with_play_button(poster_url, title, unique_id):
     </div>
     '''
 
+# Ajouter le CSS global pour les boutons de navigation
+def add_navigation_button_styles():
+    """Ajoute les styles CSS pour les boutons de navigation"""
+    st.markdown("""
+    <style>
+    /* Styles pour les boutons de navigation des carrousels */
+    .stButton > button {
+        background: rgba(0, 0, 0, 0.6) !important;
+        color: white !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 50% !important;
+        width: 50px !important;
+        height: 50px !important;
+        font-size: 20px !important;
+        font-weight: bold !important;
+        transition: all 0.3s ease !important;
+        backdrop-filter: blur(5px) !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    .stButton > button:hover {
+        background: rgba(255, 255, 255, 0.9) !important;
+        color: #333 !important;
+        border-color: #fff !important;
+        transform: scale(1.1) !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
+    }
+    
+    .stButton > button:active {
+        transform: scale(0.95) !important;
+    }
+    
+    /* Animation pour les boutons */
+    .stButton > button:focus {
+        outline: none !important;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3) !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 # Charger les données
 df_main = load_movies()
+
+# Appliquer les styles pour les boutons de navigation
+add_navigation_button_styles()
 
 # Interface utilisateur
 st.sidebar.title("🎬 CinéCreuse+")
