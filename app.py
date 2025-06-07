@@ -327,13 +327,13 @@ if page == "🏠 Accueil":
         # Filtrer les films par genre
         genre_movies = df_main[df_main["genres_x"].str.contains(genre, case=False, na=False)]
         
-        # Trier par note et prendre les 15 meilleurs
-        genre_movies = genre_movies.nlargest(15, 'averageRating')
+        # Trier par note et prendre les 24 meilleurs
+        genre_movies = genre_movies.nlargest(24, 'averageRating')
         
         if len(genre_movies) > 0:
             st.markdown(f"### 🎭 {genre}")
             
-            # Interface de pagination pour naviguer dans les 15 films
+            # Interface de pagination pour naviguer dans les 24 films
             if 'current_page' not in st.session_state:
                 st.session_state.current_page = {}
             if genre not in st.session_state.current_page:
@@ -416,8 +416,7 @@ if page == "🏠 Accueil":
                         st.session_state.current_page[genre] = min(total_pages - 1, current_page + 1)
                         st.rerun()
             
-            # Indicateur de page centré
-            st.markdown(f"<div style='text-align: center; margin: 10px 0; color: #888;'>Page {current_page + 1} sur {total_pages}</div>", unsafe_allow_html=True)
+
             
             st.markdown("---")
     
