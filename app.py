@@ -346,96 +346,191 @@ if page == "🏠 Accueil":
     """
     
     st.markdown(logo_accueil, unsafe_allow_html=True)
-    st.markdown("🎬 Bienvenue sur CinéCreuse+ ! Découvrez les films à l'affiche classés par genre.")
+    st.markdown("🎬 Bienvenue sur CinéCreuse+ ! Découvrez notre catalogue de films.")
     st.markdown("---")
     
-    # Affichage par genre dynamique
-    st.subheader("🎭 Catalogue par genres")
+    # Barre de recherche de films
+    st.subheader("🔍 Rechercher un film")
     
-    # Extraction des genres uniques
-    all_genres = []
-    for genres_str in df_main['genres_x'].dropna():
-        if isinstance(genres_str, str):
-            genres = [g.strip() for g in genres_str.split(',')]
-            all_genres.extend(genres)
+    # Champ de recherche
+    search_query = st.text_input("", placeholder="Tapez le nom d'un film...", key="home_search")
     
-    # Compter les occurrences de chaque genre
-    genre_counts = {}
-    for genre in all_genres:
-        if genre in genre_counts:
-            genre_counts[genre] += 1
+    if search_query:
+        # Recherche dans les titres
+        search_results = df_main[
+            df_main['primaryTitle'].str.contains(search_query, case=False, na=False) |
+            df_main['originalTitle'].str.contains(search_query, case=False, na=False)
+        ].nlargest(12, 'averageRating')
+        
+        if len(search_results) > 0:
+            st.markdown(f"### 🎬 Résultats pour '{search_query}'")
+            
+            # Afficher les résultats en grille 6 par ligne
+            num_results = len(search_results)
+            num_rows = (num_results - 1) // 6 + 1
+            
+            for row in range(num_rows):
+                cols = st.columns(6)
+                start_idx = row * 6
+                end_idx = min(start_idx + 6, num_results)
+                
+                for col_idx, (_, movie) in enumerate(search_results.iloc[start_idx:end_idx].iterrows()):
+                    with cols[col_idx]:
+                        if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                            unique_id = f"search_{row}_{col_idx}_{hash(movie['poster_url']) % 10000}"
+                            poster_html = f'''
+                            <style>
+                            .poster-{unique_id} {{
+                                transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+                                cursor: pointer;
+                                border-radius: 8px;
+                                overflow: hidden;
+                                display: block;
+                            }}
+                            .poster-{unique_id}:hover {{
+                                transform: scale(1.25);
+                                box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+                                filter: brightness(1.2) contrast(1.1);
+                                z-index: 100;
+                            }}
+                            .poster-{unique_id} img {{
+                                width: 100%;
+                                height: auto;
+                                border-radius: 8px;
+                                display: block;
+                            }}
+                            </style>
+                            <div class="poster-{unique_id}">
+                                <img src="{movie['poster_url']}" alt="{movie['primaryTitle']}" style="width: 100%; border-radius: 8px;">
+                            </div>
+                            '''
+                            st.markdown(poster_html, unsafe_allow_html=True)
+                        else:
+                            st.info("🎬 Affiche non disponible")
+                        
+                        # Titre du film
+                        st.caption(f"**{movie['primaryTitle']}**")
+                        if movie['startYear'] and pd.notna(movie['startYear']):
+                            st.caption(f"📅 {int(movie['startYear'])}")
+                        if movie['averageRating'] and pd.notna(movie['averageRating']):
+                            st.caption(f"⭐ {movie['averageRating']:.1f}/10")
         else:
-            genre_counts[genre] = 1
-    
-    # Trier par popularité et prendre les top genres
-    sorted_genres = sorted(genre_counts.items(), key=lambda x: x[1], reverse=True)
-    top_genres = [genre for genre, count in sorted_genres[:8]]
-    
-    # Genres prioritaires (assurer qu'ils sont inclus)
-    priority_genres = ['Action', 'Drama', 'Comedy', 'Thriller', 'Romance', 'Crime', 'Adventure', 'Animation']
-    
-    # Créer la liste finale des genres
-    final_genres = []
-    for genre in priority_genres:
-        if genre in [g for g, c in sorted_genres]:
-            final_genres.append(genre)
-    
-    # Ajouter d'autres genres populaires si nécessaire
-    for genre in top_genres:
-        if genre not in final_genres:
-            final_genres.append(genre)
-    
-    # Limiter à 10 genres maximum
-    final_genres = final_genres[:10]
-    
-    # CSS pour les effets hover
-    st.markdown("""
-    <style>
-    .movie-hover {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border-radius: 8px;
-        overflow: hidden;
-        cursor: pointer;
-        display: block;
-        position: relative;
-    }
-    .movie-hover:hover {
-        transform: scale(1.08) !important;
-        box-shadow: 0 12px 30px rgba(0,0,0,0.7) !important;
-        z-index: 100 !important;
-    }
-    .movie-hover img {
-        transition: all 0.3s ease !important;
-        border-radius: 8px;
-    }
-    .movie-hover:hover img {
-        filter: brightness(1.1) !important;
-        transform: scale(1.02) !important;
-    }
-    
-    /* Force styles on Streamlit image containers */
-    div[data-testid="stImage"] > img {
-        transition: all 0.3s ease !important;
-        border-radius: 8px !important;
-    }
-    
-    .movie-hover div[data-testid="stImage"]:hover > img {
-        transform: scale(1.08) !important;
-        filter: brightness(1.1) !important;
-        box-shadow: 0 12px 30px rgba(0,0,0,0.7) !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # Afficher chaque section de genre avec navigation horizontale
-    for idx, genre in enumerate(final_genres):
-        # Filtrer les films par genre
-        genre_movies = df_main[df_main["genres_x"].str.contains(genre, case=False, na=False)]
+            st.warning(f"Aucun film trouvé pour '{search_query}'")
+    else:
+        st.markdown("### 🎭 Films populaires")
         
-        # Trier par note et prendre les 24 meilleurs
-        genre_movies = genre_movies.nlargest(24, 'averageRating')
+        # Afficher les films les mieux notés par défaut
+        popular_movies = df_main.nlargest(12, 'averageRating')
         
-        if len(genre_movies) > 0:
+        # Afficher en grille 6 par ligne
+        num_movies = len(popular_movies)
+        num_rows = (num_movies - 1) // 6 + 1
+        
+        for row in range(num_rows):
+            cols = st.columns(6)
+            start_idx = row * 6
+            end_idx = min(start_idx + 6, num_movies)
+            
+            for col_idx, (_, movie) in enumerate(popular_movies.iloc[start_idx:end_idx].iterrows()):
+                with cols[col_idx]:
+                    if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                        unique_id = f"popular_{row}_{col_idx}_{hash(movie['poster_url']) % 10000}"
+                        poster_html = f'''
+                        <style>
+                        .poster-{unique_id} {{
+                            transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+                            cursor: pointer;
+                            border-radius: 8px;
+                            overflow: hidden;
+                            display: block;
+                        }}
+                        .poster-{unique_id}:hover {{
+                            transform: scale(1.25);
+                            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+                            filter: brightness(1.2) contrast(1.1);
+                            z-index: 100;
+                        }}
+                        .poster-{unique_id} img {{
+                            width: 100%;
+                            height: auto;
+                            border-radius: 8px;
+                            display: block;
+                        }}
+                        </style>
+                        <div class="poster-{unique_id}">
+                            <img src="{movie['poster_url']}" alt="{movie['primaryTitle']}" style="width: 100%; border-radius: 8px;">
+                        </div>
+                        '''
+                        st.markdown(poster_html, unsafe_allow_html=True)
+                    else:
+                        st.info("🎬 Affiche non disponible")
+                    
+                    # Titre du film
+                    st.caption(f"**{movie['primaryTitle']}**")
+                    if movie['startYear'] and pd.notna(movie['startYear']):
+                        st.caption(f"📅 {int(movie['startYear'])}")
+                    if movie['averageRating'] and pd.notna(movie['averageRating']):
+                        st.caption(f"⭐ {movie['averageRating']:.1f}/10")
+
+# ================================
+# PAGE RECHERCHE
+# ================================
+elif page == "🔍 Recherche":
+    st.title("🔍 Recherche de films")
+    st.markdown("Trouvez vos films préférés dans notre catalogue.")
+    st.markdown("---")
+    
+    # Barre de recherche
+    search_query = st.text_input("🔍 Rechercher un film", placeholder="Entrez le titre d'un film...")
+    
+    if search_query:
+        # Recherche dans les titres
+        search_results = df_main[
+            df_main['primaryTitle'].str.contains(search_query, case=False, na=False) |
+            df_main['originalTitle'].str.contains(search_query, case=False, na=False)
+        ].nlargest(24, 'averageRating')
+        
+        if len(search_results) > 0:
+            st.markdown(f"### 🎬 {len(search_results)} résultat(s) pour '{search_query}'")
+            
+            # Afficher les résultats en grille
+            cols_per_row = 6
+            num_rows = (len(search_results) - 1) // cols_per_row + 1
+            
+            for row in range(num_rows):
+                cols = st.columns(cols_per_row)
+                start_idx = row * cols_per_row
+                end_idx = min(start_idx + cols_per_row, len(search_results))
+                
+                for col_idx, (_, movie) in enumerate(search_results.iloc[start_idx:end_idx].iterrows()):
+                    with cols[col_idx]:
+                        if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                            st.image(movie['poster_url'], use_column_width=True)
+                        else:
+                            st.info("🎬 Affiche non disponible")
+                        
+                        st.caption(f"**{movie['primaryTitle']}**")
+                        if movie['startYear'] and pd.notna(movie['startYear']):
+                            st.caption(f"📅 {int(movie['startYear'])}")
+                        if movie['averageRating'] and pd.notna(movie['averageRating']):
+                            st.caption(f"⭐ {movie['averageRating']:.1f}/10")
+        else:
+            st.warning(f"Aucun film trouvé pour '{search_query}'")
+    else:
+        st.info("Entrez un titre de film pour commencer votre recherche.")
+
+# ================================
+# PAGE FILMS POPULAIRES
+# ================================
+elif page == "🎬 Films populaires":
+    st.title("🎬 Films populaires")
+    st.markdown("Découvrez les films les mieux notés de notre catalogue.")
+    st.markdown("---")
+    
+    # Sélectionner les films populaires
+    popular_movies = df_main.nlargest(24, 'averageRating')
+    
+    if len(popular_movies) > 0:
             st.markdown(f"### 🎭 {genre}")
             
             # Interface de pagination pour naviguer dans les 24 films
