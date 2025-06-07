@@ -356,22 +356,13 @@ if page == "🏠 Accueil":
             col_widths = [0.5] + [1] * num_movies + [0.5]
             nav_cols = st.columns(col_widths)
             
-            # Bouton précédent à gauche avec positionnement absolu
+            # Bouton précédent à gauche
             with nav_cols[0]:
+                st.markdown("<div style='height: 120px;'></div>", unsafe_allow_html=True)
                 if current_page > 0:
-                    st.markdown("""
-                    <div style="
-                        position: relative;
-                        height: 400px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                    ">
-                    """, unsafe_allow_html=True)
                     if st.button("⬅️", key=f"prev_{genre}_{idx}_home", help="Page précédente"):
                         st.session_state.current_page[genre] = max(0, current_page - 1)
                         st.rerun()
-                    st.markdown("</div>", unsafe_allow_html=True)
             
             # Films au centre
             cols = nav_cols[1:num_movies+1]
@@ -417,22 +408,13 @@ if page == "🏠 Accueil":
                         # Note
                         st.write(f"⭐ {movie['averageRating']:.1f}/10")
             
-            # Bouton suivant à droite avec positionnement absolu
+            # Bouton suivant à droite
             with nav_cols[-1]:
+                st.markdown("<div style='height: 120px;'></div>", unsafe_allow_html=True)
                 if current_page < total_pages - 1:
-                    st.markdown("""
-                    <div style="
-                        position: relative;
-                        height: 400px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                    ">
-                    """, unsafe_allow_html=True)
                     if st.button("➡️", key=f"next_{genre}_{idx}_home", help="Page suivante"):
                         st.session_state.current_page[genre] = min(total_pages - 1, current_page + 1)
                         st.rerun()
-                    st.markdown("</div>", unsafe_allow_html=True)
             
             # Indicateur de page centré
             st.markdown(f"<div style='text-align: center; margin: 10px 0; color: #888;'>Page {current_page + 1} sur {total_pages}</div>", unsafe_allow_html=True)
