@@ -271,28 +271,20 @@ if page == "🏠 Accueil":
                 col_nav1, col_movies, col_nav2 = st.columns([1, 10, 1])
                 
                 with col_nav1:
-                    # Centrage vertical avec CSS et espacement
-                    st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
+                    # Espacement vertical de 60px
+                    st.markdown('<div style="height: 60px;"></div>', unsafe_allow_html=True)
                     if current_page > 0:
-                        st.markdown("""
-                        <div style="display: flex; align-items: center; justify-content: center; height: 100px;">
-                        """, unsafe_allow_html=True)
                         if st.button("◀", key=f"prev_{genre}"):
                             st.session_state[f"{genre}_page"] -= 1
                             st.rerun()
-                        st.markdown("</div>", unsafe_allow_html=True)
                 
                 with col_nav2:
-                    # Centrage vertical avec CSS et espacement
-                    st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
+                    # Espacement vertical de 60px
+                    st.markdown('<div style="height: 60px;"></div>', unsafe_allow_html=True)
                     if current_page < total_pages - 1:
-                        st.markdown("""
-                        <div style="display: flex; align-items: center; justify-content: center; height: 100px;">
-                        """, unsafe_allow_html=True)
                         if st.button("▶", key=f"next_{genre}"):
                             st.session_state[f"{genre}_page"] += 1
                             st.rerun()
-                        st.markdown("</div>", unsafe_allow_html=True)
                 
                 with col_movies:
                     # Afficher les films de la page courante
