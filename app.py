@@ -291,17 +291,33 @@ if page == "🏠 Accueil":
         border-radius: 8px;
         overflow: hidden;
         cursor: pointer;
+        display: block;
+        position: relative;
     }
     .movie-hover:hover {
-        transform: scale(1.08);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.5);
-        z-index: 10;
+        transform: scale(1.08) !important;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.7) !important;
+        z-index: 100 !important;
     }
     .movie-hover img {
-        transition: all 0.3s ease;
+        transition: all 0.3s ease !important;
+        border-radius: 8px;
     }
     .movie-hover:hover img {
-        filter: brightness(1.1);
+        filter: brightness(1.1) !important;
+        transform: scale(1.02) !important;
+    }
+    
+    /* Force styles on Streamlit image containers */
+    div[data-testid="stImage"] > img {
+        transition: all 0.3s ease !important;
+        border-radius: 8px !important;
+    }
+    
+    .movie-hover div[data-testid="stImage"]:hover > img {
+        transform: scale(1.08) !important;
+        filter: brightness(1.1) !important;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.7) !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -353,11 +369,24 @@ if page == "🏠 Accueil":
                 with cols[movie_idx]:
                     # Container avec effet hover
                     with st.container():
-                        # Affiche du film avec classe CSS hover
+                        # Affiche du film avec effet hover inline
                         if 'poster_url' in movie and pd.notna(movie['poster_url']):
-                            st.markdown(f'<div class="movie-hover">', unsafe_allow_html=True)
-                            st.image(movie['poster_url'], width=150, use_container_width=True)
-                            st.markdown('</div>', unsafe_allow_html=True)
+                            poster_html = f'''
+                            <div style="
+                                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                                cursor: pointer;
+                                border-radius: 8px;
+                                overflow: hidden;
+                            "
+                            onmouseover="this.style.transform='scale(1.08)'; this.style.boxShadow='0 12px 30px rgba(0,0,0,0.7)'; this.style.zIndex='100';"
+                            onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'; this.style.zIndex='1';">
+                                <img src="{movie['poster_url']}" 
+                                     style="width: 100%; height: auto; border-radius: 8px; transition: filter 0.3s ease;"
+                                     onmouseover="this.style.filter='brightness(1.1)';"
+                                     onmouseout="this.style.filter='brightness(1)';" />
+                            </div>
+                            '''
+                            st.markdown(poster_html, unsafe_allow_html=True)
                         
                         # Titre du film
                         st.markdown(f"**{movie['title_x']}**")
@@ -376,11 +405,24 @@ if page == "🏠 Accueil":
         with cols[idx]:
             # Container avec effet hover
             with st.container():
-                # Affiche du film avec classe CSS hover
+                # Affiche du film avec effet hover inline
                 if 'poster_url' in movie and pd.notna(movie['poster_url']):
-                    st.markdown(f'<div class="movie-hover">', unsafe_allow_html=True)
-                    st.image(movie['poster_url'], width=100, use_container_width=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    poster_html = f'''
+                    <div style="
+                        transition: transform 0.3s ease, box-shadow 0.3s ease;
+                        cursor: pointer;
+                        border-radius: 8px;
+                        overflow: hidden;
+                    "
+                    onmouseover="this.style.transform='scale(1.08)'; this.style.boxShadow='0 12px 30px rgba(0,0,0,0.7)'; this.style.zIndex='100';"
+                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'; this.style.zIndex='1';">
+                        <img src="{movie['poster_url']}" 
+                             style="width: 100%; height: auto; border-radius: 8px; transition: filter 0.3s ease;"
+                             onmouseover="this.style.filter='brightness(1.1)';"
+                             onmouseout="this.style.filter='brightness(1)';" />
+                    </div>
+                    '''
+                    st.markdown(poster_html, unsafe_allow_html=True)
                 else:
                     st.markdown(f"<div style='text-align: center; font-size: 2.5em;'>{movie['affiche']}</div>", 
                               unsafe_allow_html=True)
