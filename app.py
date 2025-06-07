@@ -369,21 +369,33 @@ if page == "🏠 Accueil":
                 with cols[movie_idx]:
                     # Container avec effet hover
                     with st.container():
-                        # Affiche du film avec effet hover inline
+                        # Affiche du film avec effet hover CSS pur
                         if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                            unique_id = f"movie_{genre}_{movie_idx}_{hash(movie['poster_url']) % 10000}"
                             poster_html = f'''
-                            <div style="
-                                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                            <style>
+                            .poster-{unique_id} {{
+                                transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
                                 cursor: pointer;
                                 border-radius: 8px;
                                 overflow: hidden;
-                            "
-                            onmouseover="this.style.transform='scale(1.08)'; this.style.boxShadow='0 12px 30px rgba(0,0,0,0.7)'; this.style.zIndex='100';"
-                            onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'; this.style.zIndex='1';">
-                                <img src="{movie['poster_url']}" 
-                                     style="width: 100%; height: auto; border-radius: 8px; transition: filter 0.3s ease;"
-                                     onmouseover="this.style.filter='brightness(1.1)';"
-                                     onmouseout="this.style.filter='brightness(1)';" />
+                                display: block;
+                            }}
+                            .poster-{unique_id}:hover {{
+                                transform: scale(1.08);
+                                box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+                                filter: brightness(1.1);
+                                z-index: 100;
+                            }}
+                            .poster-{unique_id} img {{
+                                width: 100%;
+                                height: auto;
+                                border-radius: 8px;
+                                transition: inherit;
+                            }}
+                            </style>
+                            <div class="poster-{unique_id}">
+                                <img src="{movie['poster_url']}" alt="{movie['title_x']}" />
                             </div>
                             '''
                             st.markdown(poster_html, unsafe_allow_html=True)
@@ -405,21 +417,33 @@ if page == "🏠 Accueil":
         with cols[idx]:
             # Container avec effet hover
             with st.container():
-                # Affiche du film avec effet hover inline
+                # Affiche du film avec effet hover CSS pur
                 if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                    unique_id = f"popular_{idx}_{hash(movie['poster_url']) % 10000}"
                     poster_html = f'''
-                    <div style="
-                        transition: transform 0.3s ease, box-shadow 0.3s ease;
+                    <style>
+                    .poster-{unique_id} {{
+                        transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
                         cursor: pointer;
                         border-radius: 8px;
                         overflow: hidden;
-                    "
-                    onmouseover="this.style.transform='scale(1.08)'; this.style.boxShadow='0 12px 30px rgba(0,0,0,0.7)'; this.style.zIndex='100';"
-                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'; this.style.zIndex='1';">
-                        <img src="{movie['poster_url']}" 
-                             style="width: 100%; height: auto; border-radius: 8px; transition: filter 0.3s ease;"
-                             onmouseover="this.style.filter='brightness(1.1)';"
-                             onmouseout="this.style.filter='brightness(1)';" />
+                        display: block;
+                    }}
+                    .poster-{unique_id}:hover {{
+                        transform: scale(1.08);
+                        box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+                        filter: brightness(1.1);
+                        z-index: 100;
+                    }}
+                    .poster-{unique_id} img {{
+                        width: 100%;
+                        height: auto;
+                        border-radius: 8px;
+                        transition: inherit;
+                    }}
+                    </style>
+                    <div class="poster-{unique_id}">
+                        <img src="{movie['poster_url']}" alt="{movie['title_x']}" />
                     </div>
                     '''
                     st.markdown(poster_html, unsafe_allow_html=True)
