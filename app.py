@@ -177,36 +177,6 @@ if page == "🏠 Accueil":
     
     st.markdown("---")
     
-    # Section héro
-    st.markdown("""
-    <div style='text-align: center; padding: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; margin: 1rem 0;'>
-        <h1 style='color: white; font-size: 3rem; margin-bottom: 1rem;'>Bienvenue sur CinéCreuse+</h1>
-        <p style='color: white; font-size: 1.2rem; margin-bottom: 0;'>Votre plateforme de streaming premium</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Métriques principales
-    if not df_main.empty:
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.metric("📽️ Films disponibles", len(df_main))
-        
-        with col2:
-            avg_rating = df_main['averageRating'].mean()
-            st.metric("⭐ Note moyenne", f"{avg_rating:.1f}/10")
-        
-        with col3:
-            total_runtime = df_main['runtime'].sum()
-            total_hours = int(total_runtime / 60)
-            st.metric("⏱️ Heures de contenu", f"{total_hours:,}h")
-        
-        with col4:
-            unique_genres = len(df_main['genres_x'].str.split(',').explode().unique())
-            st.metric("🎭 Genres disponibles", unique_genres)
-    
-    st.markdown("---")
-    
     # Films populaires en vedette
     st.subheader("À la une cette semaine")
     
