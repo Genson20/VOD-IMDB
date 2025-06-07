@@ -231,7 +231,7 @@ if page == "🏠 Accueil":
 
     st.markdown("---")
     
-    # Sélections par genre
+    # Sélections par genre avec carrousel
     st.subheader("🎬 Sélections par genre")
     
     if not df_main.empty:
@@ -250,21 +250,62 @@ if page == "🏠 Accueil":
             
             if len(genre_movies) > 0:
                 emoji = get_emoji_for_genre(genre)
-                st.markdown(f"### {emoji} {genre}")
                 
-                # Afficher les 6 meilleurs films de ce genre
-                top_genre_movies = genre_movies.nlargest(6, 'averageRating')
+                # Créer une section avec navigation
+                col_header1, col_header2, col_header3 = st.columns([1, 4, 1])
+                with col_header2:
+                    st.markdown(f"### {emoji} {genre}")
                 
-                cols = st.columns(6)
-                for idx, (_, movie) in enumerate(top_genre_movies.iterrows()):
-                    with cols[idx]:
-                        if movie['poster_url']:
-                            st.image(movie['poster_url'], use_container_width=True)
-                        else:
-                            st.info("🎬 Affiche non disponible")
-                        
-                        st.caption(f"**{movie['title_x']}**")
-                        st.caption(f"⭐ {movie['averageRating']:.1f}/10")
+                # Prendre les 24 meilleurs films de ce genre
+                top_genre_movies = genre_movies.nlargest(24, 'averageRating')
+                
+                # Initialize session state for this genre
+                if f"{genre}_page" not in st.session_state:
+                    st.session_state[f"{genre}_page"] = 0
+                
+                movies_per_page = 6
+                total_pages = len(top_genre_movies) // movies_per_page
+                current_page = st.session_state[f"{genre}_page"]
+                
+                # Navigation avec boutons sur les côtés
+                col_nav1, col_movies, col_nav2 = st.columns([1, 10, 1])
+                
+                with col_nav1:
+                    if current_page > 0:
+                        if st.button("◀", key=f"prev_{genre}"):
+                            st.session_state[f"{genre}_page"] -= 1
+                            st.rerun()
+                    else:
+                        st.write("")  # Espace vide si pas de bouton précédent
+                
+                with col_nav2:
+                    if current_page < total_pages - 1:
+                        if st.button("▶", key=f"next_{genre}"):
+                            st.session_state[f"{genre}_page"] += 1
+                            st.rerun()
+                    else:
+                        st.write("")  # Espace vide si pas de bouton suivant
+                
+                with col_movies:
+                    # Afficher les films de la page courante
+                    start_idx = current_page * movies_per_page
+                    end_idx = min(start_idx + movies_per_page, len(top_genre_movies))
+                    page_movies = top_genre_movies.iloc[start_idx:end_idx]
+                    
+                    cols = st.columns(6)
+                    for idx, (_, movie) in enumerate(page_movies.iterrows()):
+                        with cols[idx]:
+                            if movie['poster_url']:
+                                st.image(movie['poster_url'], use_container_width=True)
+                            else:
+                                st.info("🎬 Affiche non disponible")
+                            
+                            st.caption(f"**{movie['title_x']}**")
+                            st.caption(f"⭐ {movie['averageRating']:.1f}/10")
+                
+                # Indicateur de page
+                st.markdown(f"<div style='text-align: center; color: #666; margin: 10px 0;'>Page {current_page + 1} sur {total_pages}</div>", unsafe_allow_html=True)
+                st.markdown("---")
 
 # ================================
 # PAGE CATALOGUE
@@ -511,7 +552,7 @@ elif page == "📊 Dashboard Admin":
             fig_rating = px.histogram(
                 df_main, 
                 x='averageRating', 
-                bins=20,
+                nbins=20,
                 title="Répartition des notes IMDb",
                 color_discrete_sequence=['#1f77b4']
             )
@@ -593,7 +634,7 @@ elif page == "👥 Gestion Utilisateurs":
         fig_age = px.histogram(
             users_df, 
             x='age', 
-            bins=15,
+            nbins=15,
             title="Répartition par âge des utilisateurs"
         )
         st.plotly_chart(fig_age, use_container_width=True)
