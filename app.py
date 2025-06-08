@@ -660,76 +660,129 @@ elif page == "Votre cinéma":
     st.title("Votre cinéma local")
     
     # Informations sur le cinéma
-    col1, col2 = st.columns([2, 1])
+    cinema_col1, cinema_col2 = st.columns([3, 1])
     
-    # Initialiser les variables pour toute la page
-    daily_movies = df_main.nlargest(6, 'averageRating') if not df_main.empty else pd.DataFrame()
-    showtimes = ["14:30", "17:00", "19:30", "22:00"]
-    
-    with col1:
+    with cinema_col1:
         st.subheader("Cinéma CinéCreuse")
         st.write("📍 **Adresse:** 123 Rue du Cinéma, Creuse, France")
         st.write("📞 **Téléphone:** +33 5 55 XX XX XX")
         st.write("🕐 **Horaires:** Lundi-Dimanche 14h00-23h00")
-        
-        # Séances du jour
-        st.subheader("Séances d'aujourd'hui")
-        
-        if not daily_movies.empty:
-            
-            for _, movie in daily_movies.iterrows():
-                with st.expander(f"🎬 {movie['title_x']} - ⭐ {movie['averageRating']:.1f}/10"):
-                    col_poster, col_info = st.columns([1, 3])
-                    
-                    with col_poster:
-                        if movie['poster_url']:
-                            st.image(movie['poster_url'], width=150)
-                        else:
-                            st.markdown('<div style="height: 200px; width: 150px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">🎬</div>', unsafe_allow_html=True)
-                    
-                    with col_info:
-                        st.write(f"**Durée:** {movie['runtime']} minutes")
-                        st.write(f"**Genre:** {movie['genres_x']}")
-                        st.write(f"**Synopsis:** {movie['description'][:200]}...")
-                        
-                        # Afficher les horaires
-                        st.write("**Séances:**")
-                        time_buttons = ""
-                        for time in showtimes:
-                            time_buttons += f"**{time}** • "
-                        st.write(time_buttons.rstrip(" • "))
     
-    with col2:
-        st.subheader("Réservation rapide")
+    with cinema_col2:
+        st.metric("Places disponibles", "245", "12")
+        st.metric("Films à l'affiche", "12", "2")
+    
+    st.markdown("---")
+    
+    # Vérifier d'abord si les données sont disponibles
+    if not df_main.empty:
+        # Programmation sur 7 jours
+        st.subheader("Programmation sur 7 jours")
         
-        # Formulaire de réservation
-        with st.form("reservation_form"):
-            st.write("**Réserver vos places**")
+        from datetime import datetime, timedelta
+        import random
+        
+        # Générer les 7 prochains jours
+        today = datetime.now()
+        week_days = []
+        for i in range(7):
+            day = today + timedelta(days=i)
+            week_days.append({
+                'date': day,
+                'day_name': day.strftime('%A'),
+                'day_num': day.strftime('%d'),
+                'month': day.strftime('%b')
+            })
+        
+        # Sélecteur de jour
+        selected_day_index = st.selectbox(
+            "Choisir un jour:",
+            range(7),
+            format_func=lambda x: f"{week_days[x]['day_name']} {week_days[x]['day_num']} {week_days[x]['month']}"
+        )
+        
+        selected_day = week_days[selected_day_index]
+        
+        # Rotation des films selon le jour pour varier la programmation
+        random.seed(selected_day_index)  # Seed fixe pour cohérence
+        available_movies = df_main.sample(min(8, len(df_main))).reset_index(drop=True)
+        
+        st.markdown(f"### Films du {selected_day['day_name']} {selected_day['day_num']} {selected_day['month']}")
+        
+        # Horaires variables selon le jour
+        base_times = ["14:30", "17:00", "19:30", "22:00"]
+        if selected_day_index == 5 or selected_day_index == 6:  # Weekend
+            showtimes = ["10:30", "13:00", "15:30", "18:00", "20:30", "23:00"]
+        else:
+            showtimes = base_times
+        
+        # Affichage en grille
+        movies_per_row = 4
+        for i in range(0, len(available_movies), movies_per_row):
+            movie_cols = st.columns(movies_per_row)
             
-            selected_movie = st.selectbox(
-                "Choisir un film", 
-                options=daily_movies['title_x'].tolist() if not df_main.empty else ["Aucun film disponible"]
-            )
-            
-            selected_time = st.selectbox(
-                "Horaire",
-                options=showtimes
-            )
-            
-            nb_tickets = st.number_input(
-                "Nombre de places",
-                min_value=1,
-                max_value=10,
-                value=2
-            )
-            
-            submitted = st.form_submit_button("Réserver")
-            
-            if submitted:
-                st.success(f"Réservation confirmée !")
-                st.info(f"Film: {selected_movie}")
-                st.info(f"Horaire: {selected_time}")
-                st.info(f"Places: {nb_tickets}")
+            for j, col in enumerate(movie_cols):
+                if i + j < len(available_movies):
+                    movie = available_movies.iloc[i + j]
+                    
+                    with col:
+                        # Poster du film
+                        if movie['poster_url']:
+                            poster_html = create_poster_with_play_button(
+                                movie['poster_url'], 
+                                movie['title_x'], 
+                                f"cinema_{i+j}"
+                            )
+                            st.markdown(poster_html, unsafe_allow_html=True)
+                        else:
+                            st.markdown(
+                                '<div style="height: 200px; width: 100%; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin-bottom: 10px;">🎬</div>', 
+                                unsafe_allow_html=True
+                            )
+                        
+                        # Informations du film
+                        st.markdown(f"**{movie['title_x'][:25]}{'...' if len(movie['title_x']) > 25 else ''}**")
+                        st.caption(f"⭐ {movie['averageRating']:.1f}/10 • {movie['runtime']}min")
+                        st.caption(f"{movie['genres_x'][:20]}{'...' if len(str(movie['genres_x'])) > 20 else ''}")
+                        
+                        # Horaires pour ce film (2-3 séances par film)
+                        movie_times = random.sample(showtimes, min(3, len(showtimes)))
+                        movie_times.sort()
+                        
+                        st.markdown("**Séances:**")
+                        times_text = " • ".join([f"**{time}**" for time in movie_times])
+                        st.markdown(times_text)
+                        
+                        # Bouton de réservation
+                        if st.button(f"Réserver", key=f"book_{selected_day_index}_{i+j}"):
+                            st.success(f"Réservation pour {movie['title_x']}")
+        
+        st.markdown("---")
+        
+        # Section informations pratiques
+        st.subheader("Informations pratiques")
+        
+        info_col1, info_col2 = st.columns(2)
+        
+        with info_col1:
+            st.markdown("""
+            **Tarifs:**
+            - Plein tarif: 9,50€
+            - Étudiant: 7,50€ 
+            - Enfant (-12 ans): 6,50€
+            - Séance matinale: 6,00€
+            """)
+        
+        with info_col2:
+            st.markdown("""
+            **Services:**
+            - Billetterie en ligne
+            - Parking gratuit
+            - Accessibilité PMR
+            - Climatisation
+            """)
+    else:
+        st.warning("Aucun film disponible pour le moment.")
 
 # PAGE ADMIN STATS
 elif page == "Admin stats":
