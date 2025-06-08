@@ -168,14 +168,39 @@ df_main = load_movies()
 # Appliquer les styles pour les boutons de navigation
 add_navigation_button_styles()
 
-# Interface utilisateur
-st.sidebar.title("🎬 CinéCreuse+")
-page = st.sidebar.selectbox("Navigation", [
-    "🏠 Accueil", "🎬 Catalogue", "📊 Analytics", "⚙️ Admin"
-])
+# Interface utilisateur avec navigation par boutons
+st.sidebar.title("CinéCreuse+")
+
+# Initialiser la page par défaut si elle n'existe pas
+if 'page' not in st.session_state:
+    st.session_state['page'] = 'Accueil'
+
+# Navigation avec boutons verticaux
+st.sidebar.markdown("### Navigation")
+
+# Liste des pages
+pages = ['Accueil', 'Catalogue', 'Recommandation', 'Votre cinéma', 'Admin stats']
+
+# Créer les boutons de navigation
+for page_name in pages:
+    # Vérifier si c'est la page active
+    is_active = st.session_state['page'] == page_name
+    
+    # Bouton avec état visuel différent selon l'activité
+    if st.sidebar.button(
+        page_name, 
+        key=f"nav_{page_name}",
+        disabled=is_active,
+        use_container_width=True
+    ):
+        st.session_state['page'] = page_name
+        st.rerun()
+
+# Récupérer la page active
+page = st.session_state['page']
 
 # PAGE ACCUEIL
-if page == "🏠 Accueil":
+if page == "Accueil":
     # En-tête avec logo
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
@@ -446,7 +471,7 @@ if page == "🏠 Accueil":
         st.markdown("---")
 
 # PAGE CATALOGUE
-elif page == "🎬 Catalogue":
+elif page == "Catalogue":
     st.title("🎬 Catalogue complet")
     
     if df_main.empty:
@@ -521,8 +546,144 @@ elif page == "🎬 Catalogue":
                         st.caption(f"**{movie['title_x']}**")
                         st.caption(f"⭐ {movie['averageRating']:.1f}/10 • {movie['year']}")
 
-# PAGE ANALYTICS
-elif page == "📊 Analytics":
+# PAGE RECOMMANDATION
+elif page == "Recommandation":
+    st.title("Recommandations personnalisées")
+    
+    if df_main.empty:
+        st.warning("Aucune donnée disponible pour les recommandations.")
+    else:
+        # Section recommandations basées sur les genres populaires
+        st.subheader("Recommandé pour vous")
+        
+        # Algorithme simple de recommandation basé sur les notes élevées
+        recommended_movies = df_main[df_main['averageRating'] >= 7.5].sample(n=min(12, len(df_main[df_main['averageRating'] >= 7.5])))
+        
+        if not recommended_movies.empty:
+            # Affichage en grille de 6 colonnes
+            cols = st.columns(6)
+            for idx, (_, movie) in enumerate(recommended_movies.iterrows()):
+                if idx >= 12:  # Limiter à 12 films
+                    break
+                col_idx = idx % 6
+                with cols[col_idx]:
+                    if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                        unique_id = f"recommended_{idx}_{hash(movie['poster_url']) % 10000}"
+                        poster_html = create_poster_with_play_button(movie['poster_url'], movie['title_x'], unique_id)
+                        st.markdown(poster_html, unsafe_allow_html=True)
+                    else:
+                        st.markdown('<div style="height: 270px; width: 180px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
+                    st.caption(f"**{movie['title_x']}**")
+                    st.caption(f"⭐ {movie['averageRating']:.1f}/10")
+        
+        st.markdown("---")
+        
+        # Recommandations par genre préféré
+        st.subheader("Basé sur vos préférences")
+        
+        # Simuler des préférences utilisateur (ici Action et Drame)
+        preferred_genres = ["Action", "Drama"]
+        
+        for genre in preferred_genres:
+            genre_movies = df_main[df_main['genres_x'].str.contains(genre, case=False, na=False)]
+            if not genre_movies.empty:
+                top_genre_movies = genre_movies.nlargest(6, 'averageRating')
+                
+                st.write(f"**Films {genre} recommandés**")
+                cols = st.columns(6)
+                
+                for idx, (_, movie) in enumerate(top_genre_movies.iterrows()):
+                    with cols[idx]:
+                        if 'poster_url' in movie and pd.notna(movie['poster_url']):
+                            unique_id = f"pref_{genre}_{idx}_{hash(movie['poster_url']) % 10000}"
+                            poster_html = create_poster_with_play_button(movie['poster_url'], movie['title_x'], unique_id)
+                            st.markdown(poster_html, unsafe_allow_html=True)
+                        else:
+                            st.markdown('<div style="height: 270px; width: 180px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
+                        st.caption(f"**{movie['title_x']}**")
+                        st.caption(f"⭐ {movie['averageRating']:.1f}/10")
+                
+                st.markdown("---")
+
+# PAGE VOTRE CINÉMA
+elif page == "Votre cinéma":
+    st.title("Votre cinéma local")
+    
+    # Informations sur le cinéma
+    col1, col2 = st.columns([2, 1])
+    
+    # Initialiser les variables pour toute la page
+    daily_movies = df_main.nlargest(6, 'averageRating') if not df_main.empty else pd.DataFrame()
+    showtimes = ["14:30", "17:00", "19:30", "22:00"]
+    
+    with col1:
+        st.subheader("Cinéma CinéCreuse")
+        st.write("📍 **Adresse:** 123 Rue du Cinéma, Creuse, France")
+        st.write("📞 **Téléphone:** +33 5 55 XX XX XX")
+        st.write("🕐 **Horaires:** Lundi-Dimanche 14h00-23h00")
+        
+        # Séances du jour
+        st.subheader("Séances d'aujourd'hui")
+        
+        if not daily_movies.empty:
+            
+            for _, movie in daily_movies.iterrows():
+                with st.expander(f"🎬 {movie['title_x']} - ⭐ {movie['averageRating']:.1f}/10"):
+                    col_poster, col_info = st.columns([1, 3])
+                    
+                    with col_poster:
+                        if movie['poster_url']:
+                            st.image(movie['poster_url'], width=150)
+                        else:
+                            st.markdown('<div style="height: 200px; width: 150px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">🎬</div>', unsafe_allow_html=True)
+                    
+                    with col_info:
+                        st.write(f"**Durée:** {movie['runtime']} minutes")
+                        st.write(f"**Genre:** {movie['genres_x']}")
+                        st.write(f"**Synopsis:** {movie['description'][:200]}...")
+                        
+                        # Afficher les horaires
+                        st.write("**Séances:**")
+                        cols_times = st.columns(4)
+                        for i, time in enumerate(showtimes):
+                            with cols_times[i]:
+                                if st.button(time, key=f"book_{movie['title_x']}_{time}"):
+                                    st.success(f"Réservation confirmée pour {time}")
+    
+    with col2:
+        st.subheader("Réservation rapide")
+        
+        # Formulaire de réservation
+        with st.form("reservation_form"):
+            st.write("**Réserver vos places**")
+            
+            selected_movie = st.selectbox(
+                "Choisir un film", 
+                options=daily_movies['title_x'].tolist() if not df_main.empty else ["Aucun film disponible"]
+            )
+            
+            selected_time = st.selectbox(
+                "Horaire",
+                options=showtimes
+            )
+            
+            nb_tickets = st.number_input(
+                "Nombre de places",
+                min_value=1,
+                max_value=10,
+                value=2
+            )
+            
+            submitted = st.form_submit_button("Réserver")
+            
+            if submitted:
+                st.success(f"Réservation confirmée !")
+                st.info(f"Film: {selected_movie}")
+                st.info(f"Horaire: {selected_time}")
+                st.info(f"Places: {nb_tickets}")
+
+# PAGE ADMIN STATS
+elif page == "Admin stats":
     st.title("📊 Analytics & Statistiques")
     
     if df_main.empty:
