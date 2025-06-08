@@ -129,9 +129,9 @@ def add_navigation_button_styles():
     <style>
     /* Styles pour les boutons de navigation de la sidebar */
     section[data-testid="stSidebar"] .stButton > button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: white !important;
-        border: none !important;
+        background: rgba(40, 44, 52, 0.8) !important;
+        color: #e8e8e8 !important;
+        border: 1px solid rgba(80, 80, 80, 0.3) !important;
         border-radius: 8px !important;
         width: 100% !important;
         min-height: 60px !important;
@@ -145,7 +145,7 @@ def add_navigation_button_styles():
         padding: 12px 8px !important;
         margin-bottom: 8px !important;
         transition: all 0.3s ease !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -154,16 +154,19 @@ def add_navigation_button_styles():
     }
     
     section[data-testid="stSidebar"] .stButton > button:hover {
-        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        background: rgba(60, 64, 72, 0.9) !important;
+        border-color: rgba(120, 120, 120, 0.5) !important;
+        color: #ffffff !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
     }
     
     section[data-testid="stSidebar"] .stButton > button:disabled {
-        background: #2e3440 !important;
-        color: #88c999 !important;
+        background: rgba(25, 28, 35, 0.9) !important;
+        color: #a0a0a0 !important;
+        border-color: rgba(60, 60, 60, 0.4) !important;
         transform: none !important;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
         cursor: not-allowed !important;
     }
     
@@ -691,11 +694,10 @@ elif page == "Votre cinéma":
                         
                         # Afficher les horaires
                         st.write("**Séances:**")
-                        cols_times = st.columns(4)
-                        for i, time in enumerate(showtimes):
-                            with cols_times[i]:
-                                if st.button(time, key=f"book_{movie['title_x']}_{time}"):
-                                    st.success(f"Réservation confirmée pour {time}")
+                        time_buttons = ""
+                        for time in showtimes:
+                            time_buttons += f"**{time}** • "
+                        st.write(time_buttons.rstrip(" • "))
     
     with col2:
         st.subheader("Réservation rapide")
@@ -765,7 +767,7 @@ elif page == "Admin stats":
             fig_ratings = px.histogram(
                 df_main, 
                 x='averageRating', 
-                bins=20,
+                nbins=20,
                 title="Distribution des Notes",
                 labels={'averageRating': 'Note Moyenne', 'count': 'Nombre de Films'}
             )
