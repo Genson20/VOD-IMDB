@@ -128,31 +128,38 @@ def add_navigation_button_styles():
     st.markdown("""
     <style>
     /* Styles pour les boutons de navigation de la sidebar */
-    .css-1d391kg .stButton > button {
+    section[data-testid="stSidebar"] .stButton > button {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         color: white !important;
         border: none !important;
         border-radius: 8px !important;
         width: 100% !important;
-        height: 45px !important;
+        min-height: 60px !important;
+        height: auto !important;
         font-size: 14px !important;
         font-weight: 500 !important;
         text-align: center !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        line-height: 1.3 !important;
+        padding: 12px 8px !important;
         margin-bottom: 8px !important;
         transition: all 0.3s ease !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow-wrap: break-word !important;
+        hyphens: auto !important;
     }
     
-    .css-1d391kg .stButton > button:hover {
+    section[data-testid="stSidebar"] .stButton > button:hover {
         background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
     }
     
-    .css-1d391kg .stButton > button:disabled {
+    section[data-testid="stSidebar"] .stButton > button:disabled {
         background: #2e3440 !important;
         color: #88c999 !important;
         transform: none !important;
@@ -160,8 +167,8 @@ def add_navigation_button_styles():
         cursor: not-allowed !important;
     }
     
-    /* Styles pour les boutons de navigation des carrousels */
-    .element-container .stButton > button {
+    /* Styles pour les boutons de navigation des carrousels dans le contenu principal */
+    .main .stButton > button {
         background: rgba(0, 0, 0, 0.6) !important;
         color: white !important;
         border: 2px solid rgba(255, 255, 255, 0.3) !important;
@@ -175,7 +182,7 @@ def add_navigation_button_styles():
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
     }
     
-    .element-container .stButton > button:hover {
+    .main .stButton > button:hover {
         background: rgba(255, 255, 255, 0.9) !important;
         color: #333 !important;
         border-color: #fff !important;
@@ -183,7 +190,7 @@ def add_navigation_button_styles():
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
     }
     
-    .element-container .stButton > button:active {
+    .main .stButton > button:active {
         transform: scale(0.95) !important;
     }
     
@@ -194,8 +201,13 @@ def add_navigation_button_styles():
     }
     
     /* Espacement de la sidebar */
-    .css-1d391kg {
+    section[data-testid="stSidebar"] {
         padding-top: 1rem !important;
+    }
+    
+    /* Largeur optimisée pour la sidebar */
+    section[data-testid="stSidebar"] .block-container {
+        padding: 1rem 1rem 10rem !important;
     }
     </style>
     """, unsafe_allow_html=True)
