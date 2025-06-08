@@ -127,8 +127,41 @@ def add_navigation_button_styles():
     """Ajoute les styles CSS pour les boutons de navigation"""
     st.markdown("""
     <style>
+    /* Styles pour les boutons de navigation de la sidebar */
+    .css-1d391kg .stButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        width: 100% !important;
+        height: 45px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        margin-bottom: 8px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .css-1d391kg .stButton > button:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    .css-1d391kg .stButton > button:disabled {
+        background: #2e3440 !important;
+        color: #88c999 !important;
+        transform: none !important;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+        cursor: not-allowed !important;
+    }
+    
     /* Styles pour les boutons de navigation des carrousels */
-    .stButton > button {
+    .element-container .stButton > button {
         background: rgba(0, 0, 0, 0.6) !important;
         color: white !important;
         border: 2px solid rgba(255, 255, 255, 0.3) !important;
@@ -142,7 +175,7 @@ def add_navigation_button_styles():
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
     }
     
-    .stButton > button:hover {
+    .element-container .stButton > button:hover {
         background: rgba(255, 255, 255, 0.9) !important;
         color: #333 !important;
         border-color: #fff !important;
@@ -150,7 +183,7 @@ def add_navigation_button_styles():
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
     }
     
-    .stButton > button:active {
+    .element-container .stButton > button:active {
         transform: scale(0.95) !important;
     }
     
@@ -158,6 +191,11 @@ def add_navigation_button_styles():
     .stButton > button:focus {
         outline: none !important;
         box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3) !important;
+    }
+    
+    /* Espacement de la sidebar */
+    .css-1d391kg {
+        padding-top: 1rem !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -174,9 +212,6 @@ st.sidebar.title("CinéCreuse+")
 # Initialiser la page par défaut si elle n'existe pas
 if 'page' not in st.session_state:
     st.session_state['page'] = 'Accueil'
-
-# Navigation avec boutons verticaux
-st.sidebar.markdown("### Navigation")
 
 # Liste des pages
 pages = ['Accueil', 'Catalogue', 'Recommandation', 'Votre cinéma', 'Admin stats']
