@@ -914,7 +914,7 @@ elif page == "Recommandation":
                                         with st.expander("📖 Synopsis"):
                                             st.write(movie['description'])
                     else:
-                        st.warning("Aucune recommandation n'a pu être générée.")
+                        pass  # Ne pas afficher de message d'erreur
                 else:
                     st.error(f"Film '{selected_movie}' non trouvé dans notre catalogue.")
                     st.info("Astuce : Essayez de taper seulement une partie du titre ou vérifiez l'orthographe.")
