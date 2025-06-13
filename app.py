@@ -17,6 +17,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Configuration pour améliorer les performances
+if 'first_load' not in st.session_state:
+    st.session_state['first_load'] = True
+
 @st.cache_resource
 def load_knn_model():
     """Charge le modèle KNN pour les recommandations"""
@@ -442,7 +446,7 @@ if 'page' not in st.session_state:
     st.session_state['page'] = 'Accueil'
 
 # Liste des pages
-pages = ['Accueil', 'Catalogue', 'Recommandation', 'Votre cinéma', 'Admin stats']
+pages = ['Accueil', 'Catalogue', 'Recommandation', 'Votre cinéma', 'Admin KPI']
 
 # Créer les boutons de navigation
 for page_name in pages:
@@ -611,9 +615,11 @@ if page == "Accueil":
                             st.rerun()
                 
                 with col_movies:
-                    # Afficher films avec colonnes centrées
-                    cols = st.columns(6)
+                    # Afficher films avec colonnes centrées (réduit pour performances)
+                    cols = st.columns(4)
                     for idx, (_, movie) in enumerate(page_movies.iterrows()):
+                        if idx >= 4:  # Limite stricte à 4 films
+                            break
                         with cols[idx]:
                             if 'poster_url' in movie and pd.notna(movie['poster_url']):
                                 unique_id = f"{genre}_{current_page}_{idx}_{hash(movie['poster_url']) % 10000}"
@@ -655,11 +661,11 @@ if page == "Accueil":
     st.subheader("Les plus populaires")
     
     if not df_main.empty:
-        # Sélectionner les 18 films les plus populaires par note
-        popular_movies = df_main.nlargest(18, 'averageRating')
+        # Sélectionner les 12 films les plus populaires par note (réduit pour performances)
+        popular_movies = df_main.nlargest(12, 'averageRating')
         
-        # Système de pagination : 6 films par page, 3 pages maximum
-        movies_per_page = 6
+        # Système de pagination : 4 films par page, 3 pages maximum
+        movies_per_page = 4
         total_pages = 3
         
         # État de pagination pour cette section
@@ -1065,8 +1071,8 @@ elif page == "Votre cinéma":
     else:
         st.warning("Aucun film disponible pour le moment.")
 
-# PAGE ADMIN STATS
-elif page == "Admin stats":
+# PAGE ADMIN KPI
+elif page == "Admin KPI":
     st.title("📊 Dashboard Analytics - CinéCreuse+")
     
     if df_main.empty:
