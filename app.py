@@ -18,17 +18,29 @@ st.set_page_config(
 def load_movies():
     """Charge et nettoie les données des films"""
     try:
-        # Charger le fichier CSV principal
-        df = pd.read_csv('df_main_clean.csv')
+        # Charger le nouveau fichier CSV
+        df = pd.read_csv('attached_assets/df_main_cleaned_1749777540074.csv')
         
-        # 1. Gestion des valeurs manquantes pour les colonnes critiques
+        # 1. Mapper les colonnes vers les noms attendus par l'application
+        if 'title' in df.columns and 'title_x' not in df.columns:
+            df['title_x'] = df['title']
+        if 'genres' in df.columns and 'genres_x' not in df.columns:
+            df['genres_x'] = df['genres']
+        if 'overview' in df.columns and 'description' not in df.columns:
+            df['description'] = df['overview']
+        
+        # 2. Gestion des valeurs manquantes pour les colonnes critiques
         df['title_x'] = df['title_x'].fillna('Titre non disponible')
         df['genres_x'] = df['genres_x'].fillna('Inconnu')
-        df['overview'] = df['overview'].fillna('Aucune description disponible')
+        if 'description' in df.columns:
+            df['description'] = df['description'].fillna('Aucune description disponible')
+        elif 'overview' in df.columns:
+            df['description'] = df['overview'].fillna('Aucune description disponible')
+        
         df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
         df['year'] = df['release_date'].dt.year
         
-        # 2. Nettoyer les colonnes numériques
+        # 3. Nettoyer les colonnes numériques
         numeric_columns = ['runtime', 'averageRating', 'numVotes']
         for col in numeric_columns:
             if col in df.columns:
@@ -49,19 +61,19 @@ def load_movies():
         
         # 5. Filtrer les données
         df = df.drop_duplicates(subset=['title_x', 'release_date'], keep='first')
-        df = df.dropna(subset=['title_x', 'genres_x', 'overview', 'runtime', 'averageRating'])
+        df = df.dropna(subset=['title_x', 'genres_x', 'runtime', 'averageRating'])
         df = df[df['runtime'] > 0]
         df = df[df['averageRating'] > 0]
         
-        # 6. Conserver uniquement les colonnes utiles
-        columns_to_keep = [
-            'title_x', 'original_language', 'release_date', 'year', 'genres_x', 
-            'overview', 'poster_path', 'poster_url', 'runtime', 'averageRating', 'numVotes'
-        ]
-        df = df[columns_to_keep]
+        # 6. Conserver uniquement les colonnes utiles disponibles
+        available_columns = df.columns.tolist()
+        columns_to_keep = []
+        for col in ['title_x', 'original_language', 'release_date', 'year', 'genres_x', 
+                   'description', 'poster_path', 'poster_url', 'runtime', 'averageRating', 'numVotes']:
+            if col in available_columns:
+                columns_to_keep.append(col)
         
-        # 7. Ajouter la description
-        df['description'] = df['overview']
+        df = df[columns_to_keep]
         
         return df
         
