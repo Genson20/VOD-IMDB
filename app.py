@@ -196,7 +196,7 @@ def get_knn_recommendations(movie_title, df, model, n_recommendations=5):
                     
                     return recommended_movies.to_dict('records')
             except Exception as knn_error:
-                st.warning("Le modèle KNN n'est pas compatible. Utilisation du système de recommandation alternatif.")
+                pass  # Utiliser silencieusement le système de recommandation alternatif
         
         # Utiliser le système de recommandation simple comme fallback
         return get_simple_recommendations(movie_data, df, n_recommendations)
