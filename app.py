@@ -1,4 +1,5 @@
 import streamlit as st
+st.set_page_config(page_title="CinéCreuse+", layout="wide")
 import pandas as pd
 import numpy as np
 import plotly.express as px
