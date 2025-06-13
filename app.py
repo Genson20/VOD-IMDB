@@ -45,8 +45,22 @@ def prepare_features_for_knn(df):
             if genre and genre != 'nan':
                 features_df[f'genre_{genre}'] = df['genres_x'].str.contains(genre, na=False).astype(int)
         
-        # Features numériques
-        numeric_features = ['averageRating', 'runtime', 'year', 'numVotes']
+        # Features numériques (utiliser les colonnes disponibles)
+        numeric_features = []
+        if 'averageRating' in df.columns:
+            numeric_features.append('averageRating')
+        if 'runtime' in df.columns:
+            numeric_features.append('runtime')
+        if 'year' in df.columns:
+            numeric_features.append('year')
+        if 'numVotes' in df.columns:
+            numeric_features.append('numVotes')
+        if 'vote_average' in df.columns:
+            numeric_features.append('vote_average')
+        if 'vote_count' in df.columns:
+            numeric_features.append('vote_count')
+        if 'popularity' in df.columns:
+            numeric_features.append('popularity')
         
         # Combiner toutes les features
         feature_columns = numeric_features + [col for col in features_df.columns if col.startswith('genre_')]
@@ -79,52 +93,82 @@ def find_movie_by_name(movie_title, df):
 def get_simple_recommendations(movie_data, df, n_recommendations=5):
     """Système de recommandation simple basé sur les genres et notes"""
     try:
-        # Extraire les genres du film de référence
-        movie_genres = str(movie_data['genres_x']).lower()
-        movie_rating = movie_data['averageRating']
-        movie_year = movie_data['year']
+        # Extraire les informations du film de référence
+        movie_genres = str(movie_data.get('genres_x', '')).lower()
+        
+        # Utiliser la note disponible (priorité à averageRating, sinon vote_average)
+        movie_rating = movie_data.get('averageRating', movie_data.get('vote_average', 5.0))
+        
+        # Extraire l'année (de year ou de release_date)
+        movie_year = movie_data.get('year', 2000)
+        if pd.isna(movie_year) and 'release_date' in movie_data:
+            try:
+                movie_year = pd.to_datetime(movie_data['release_date']).year
+            except:
+                movie_year = 2000
         
         # Calculer un score de similarité pour chaque film
         scores = []
         for idx, row in df.iterrows():
-            if row['title_x'] == movie_data['title_x']:
-                continue  # Exclure le film lui-même
-            
-            score = 0
-            
-            # Similarité de genre (poids 40%)
-            row_genres = str(row['genres_x']).lower()
-            common_genres = 0
-            for genre in movie_genres.split(','):
-                if genre.strip() in row_genres:
-                    common_genres += 1
-            if common_genres > 0:
-                score += common_genres * 0.4
-            
-            # Similarité de note (poids 30%)
-            rating_diff = abs(movie_rating - row['averageRating'])
-            rating_score = max(0, 1 - rating_diff / 10) * 0.3
-            score += rating_score
-            
-            # Similarité d'époque (poids 20%)
-            year_diff = abs(movie_year - row['year'])
-            year_score = max(0, 1 - year_diff / 50) * 0.2
-            score += year_score
-            
-            # Bonus pour les films bien notés (poids 10%)
-            if row['averageRating'] >= 7.0:
-                score += 0.1
-            
-            scores.append((idx, score))
+            try:
+                if row['title_x'] == movie_data['title_x']:
+                    continue  # Exclure le film lui-même
+                
+                score = 0
+                
+                # Similarité de genre (poids 50%)
+                row_genres = str(row.get('genres_x', '')).lower()
+                if movie_genres and row_genres and movie_genres != 'nan' and row_genres != 'nan':
+                    movie_genre_list = [g.strip() for g in movie_genres.split(',')]
+                    common_genres = 0
+                    for genre in movie_genre_list:
+                        if genre and genre in row_genres:
+                            common_genres += 1
+                    if common_genres > 0:
+                        score += (common_genres / len(movie_genre_list)) * 0.5
+                
+                # Similarité de note (poids 30%)
+                row_rating = row.get('averageRating', row.get('vote_average', 5.0))
+                if pd.notna(row_rating) and pd.notna(movie_rating):
+                    rating_diff = abs(float(movie_rating) - float(row_rating))
+                    rating_score = max(0, 1 - rating_diff / 10) * 0.3
+                    score += rating_score
+                
+                # Similarité d'époque (poids 20%)
+                row_year = row.get('year', 2000)
+                if pd.isna(row_year) and 'release_date' in row:
+                    try:
+                        row_year = pd.to_datetime(row['release_date']).year
+                    except:
+                        row_year = 2000
+                
+                if pd.notna(row_year) and pd.notna(movie_year):
+                    year_diff = abs(int(movie_year) - int(row_year))
+                    year_score = max(0, 1 - year_diff / 50) * 0.2
+                    score += year_score
+                
+                scores.append((idx, score))
+                
+            except Exception as row_error:
+                continue  # Ignorer les erreurs sur des lignes individuelles
         
         # Trier par score et prendre les meilleurs
-        scores.sort(key=lambda x: x[1], reverse=True)
-        top_indices = [idx for idx, score in scores[:n_recommendations]]
+        if scores:
+            scores.sort(key=lambda x: x[1], reverse=True)
+            top_indices = [idx for idx, score in scores[:n_recommendations] if score > 0]
+            if top_indices:
+                return df.iloc[top_indices].to_dict('records')
         
-        return df.iloc[top_indices].to_dict('records')
+        # Si aucune recommandation trouvée, retourner des films populaires du même genre
+        if movie_genres and movie_genres != 'nan':
+            genre_filter = df[df['genres_x'].str.contains(movie_genres.split(',')[0].strip(), na=False, case=False)]
+            if not genre_filter.empty:
+                return genre_filter.head(n_recommendations).to_dict('records')
+        
+        return []
     
     except Exception as e:
-        st.error(f"Erreur lors de la génération des recommandations simples: {e}")
+        st.error(f"Erreur lors de la génération des recommandations: {e}")
         return []
 
 def get_knn_recommendations(movie_title, df, model, n_recommendations=5):
@@ -175,6 +219,16 @@ def load_movies():
             df['genres_x'] = df['genres']
         if 'overview' in df.columns and 'description' not in df.columns:
             df['description'] = df['overview']
+        
+        # Créer la colonne year à partir de release_date
+        if 'release_date' in df.columns and 'year' not in df.columns:
+            df['year'] = pd.to_datetime(df['release_date'], errors='coerce').dt.year
+            df['year'] = df['year'].fillna(2000).astype(int)  # Valeur par défaut si date manquante
+        
+        # S'assurer que poster_url existe
+        if 'poster_path' in df.columns and 'poster_url' not in df.columns:
+            df['poster_url'] = 'https://image.tmdb.org/t/p/w500' + df['poster_path'].astype(str)
+            df.loc[df['poster_path'].isna(), 'poster_url'] = None
         
         # 2. Gestion des valeurs manquantes pour les colonnes critiques
         df['title_x'] = df['title_x'].fillna('Titre non disponible')
@@ -830,7 +884,7 @@ elif page == "Recommandation":
                             st.markdown(f"**Note :** ⭐ {selected_movie_data['averageRating']:.1f}/10")
                             st.markdown(f"**Année :** {int(selected_movie_data['year'])}")
                             st.markdown(f"**Genres :** {selected_movie_data['genres_x']}")
-                            st.markdown(f"**Durée :** {int(selected_movie_data['runtimeMinutes'])} min")
+                            st.markdown(f"**Durée :** {int(selected_movie_data['runtime'])} min")
                             if 'description' in selected_movie_data and pd.notna(selected_movie_data['description']):
                                 st.markdown(f"**Synopsis :** {selected_movie_data['description'][:200]}...")
                         
