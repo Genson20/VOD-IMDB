@@ -642,9 +642,11 @@ if page == "Accueil":
                             st.rerun()
                 
                 with col_movies:
-                    # Afficher films alignés à gauche
-                    cols = st.columns(6)
+                    # Afficher films alignés à gauche (réduit pour performances)
+                    cols = st.columns(4)
                     for idx, (_, movie) in enumerate(page_movies.iterrows()):
+                        if idx >= 4:  # Limite stricte à 4 films
+                            break
                         with cols[idx]:
                             if 'poster_url' in movie and pd.notna(movie['poster_url']):
                                 unique_id = f"{genre}_{current_page}_{idx}_{hash(movie['poster_url']) % 10000}"
@@ -699,9 +701,11 @@ if page == "Accueil":
                         st.rerun()
             
             with col_movies:
-                # Afficher films avec colonnes centrées
-                cols = st.columns(6)
+                # Afficher films avec colonnes centrées (optimisé)
+                cols = st.columns(4)
                 for idx, (_, movie) in enumerate(page_movies.iterrows()):
+                    if idx >= 4:
+                        break
                     with cols[idx]:
                         if 'poster_url' in movie and pd.notna(movie['poster_url']):
                             unique_id = f"popular_{current_page}_{idx}_{hash(movie['poster_url']) % 10000}"
@@ -724,9 +728,11 @@ if page == "Accueil":
                         st.rerun()
             
             with col_movies:
-                # Afficher films alignés à gauche
-                cols = st.columns(6)
+                # Afficher films alignés à gauche (optimisé)
+                cols = st.columns(4)
                 for idx, (_, movie) in enumerate(page_movies.iterrows()):
+                    if idx >= 4:
+                        break
                     with cols[idx]:
                         if 'poster_url' in movie and pd.notna(movie['poster_url']):
                             unique_id = f"popular_{current_page}_{idx}_{hash(movie['poster_url']) % 10000}"
