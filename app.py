@@ -811,7 +811,7 @@ elif page == "Catalogue":
 
 # PAGE RECOMMANDATION
 elif page == "Recommandation":
-    st.title("🎯 Recommandations personnalisées par IA")
+    st.title("🎯 Recommandations Personnalisées")
     
     # Charger le modèle KNN
     knn_model = load_knn_model()
@@ -919,27 +919,7 @@ elif page == "Recommandation":
                     st.error(f"Film '{selected_movie}' non trouvé dans notre catalogue.")
                     st.info("Astuce : Essayez de taper seulement une partie du titre ou vérifiez l'orthographe.")
         
-        st.markdown("---")
-        
-        # Section films les mieux notés
-        st.subheader("🌟 Films les mieux notés du catalogue")
-        top_movies = df_main.nlargest(8, 'averageRating')
-        
-        if not top_movies.empty:
-            cols = st.columns(4)
-            for idx, (_, movie) in enumerate(top_movies.iterrows()):
-                if idx >= 8:
-                    break
-                col_idx = idx % 4
-                with cols[col_idx]:
-                    if pd.notna(movie['poster_url']):
-                        unique_id = f"top_{idx}_{hash(movie['poster_url']) % 10000}"
-                        poster_html = create_poster_with_play_button(movie['poster_url'], movie['title_x'], unique_id)
-                        st.markdown(poster_html, unsafe_allow_html=True)
-                    else:
-                        st.markdown('<div style="height: 270px; width: 180px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto;">🎬</div>', unsafe_allow_html=True)
-                    st.caption(f"**{movie['title_x']}**")
-                    st.caption(f"⭐ {movie['averageRating']:.1f}/10")
+
         
         # Information sur le modèle
         st.markdown("---")
