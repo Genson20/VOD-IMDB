@@ -57,32 +57,106 @@ def prepare_features_for_knn(df):
         st.error(f"Erreur lors de la préparation des features: {e}")
         return None, None
 
-def get_knn_recommendations(movie_title, df, model, n_recommendations=5):
-    """Obtient des recommandations basées sur le modèle KNN"""
+def find_movie_by_name(movie_title, df):
+    """Trouve un film par son nom avec recherche flexible"""
+    if not movie_title or movie_title.strip() == "":
+        return None
+    
+    movie_title = movie_title.strip().lower()
+    
+    # Recherche exacte
+    exact_match = df[df['title_x'].str.lower() == movie_title]
+    if not exact_match.empty:
+        return exact_match.iloc[0]
+    
+    # Recherche partielle
+    partial_match = df[df['title_x'].str.lower().str.contains(movie_title, na=False)]
+    if not partial_match.empty:
+        return partial_match.iloc[0]
+    
+    return None
+
+def get_simple_recommendations(movie_data, df, n_recommendations=5):
+    """Système de recommandation simple basé sur les genres et notes"""
     try:
-        # Préparer les features
-        features_matrix, feature_columns = prepare_features_for_knn(df)
-        if features_matrix is None or model is None:
+        # Extraire les genres du film de référence
+        movie_genres = str(movie_data['genres_x']).lower()
+        movie_rating = movie_data['averageRating']
+        movie_year = movie_data['year']
+        
+        # Calculer un score de similarité pour chaque film
+        scores = []
+        for idx, row in df.iterrows():
+            if row['title_x'] == movie_data['title_x']:
+                continue  # Exclure le film lui-même
+            
+            score = 0
+            
+            # Similarité de genre (poids 40%)
+            row_genres = str(row['genres_x']).lower()
+            common_genres = 0
+            for genre in movie_genres.split(','):
+                if genre.strip() in row_genres:
+                    common_genres += 1
+            if common_genres > 0:
+                score += common_genres * 0.4
+            
+            # Similarité de note (poids 30%)
+            rating_diff = abs(movie_rating - row['averageRating'])
+            rating_score = max(0, 1 - rating_diff / 10) * 0.3
+            score += rating_score
+            
+            # Similarité d'époque (poids 20%)
+            year_diff = abs(movie_year - row['year'])
+            year_score = max(0, 1 - year_diff / 50) * 0.2
+            score += year_score
+            
+            # Bonus pour les films bien notés (poids 10%)
+            if row['averageRating'] >= 7.0:
+                score += 0.1
+            
+            scores.append((idx, score))
+        
+        # Trier par score et prendre les meilleurs
+        scores.sort(key=lambda x: x[1], reverse=True)
+        top_indices = [idx for idx, score in scores[:n_recommendations]]
+        
+        return df.iloc[top_indices].to_dict('records')
+    
+    except Exception as e:
+        st.error(f"Erreur lors de la génération des recommandations simples: {e}")
+        return []
+
+def get_knn_recommendations(movie_title, df, model, n_recommendations=5):
+    """Obtient des recommandations basées sur le modèle KNN avec fallback"""
+    try:
+        # Trouver le film
+        movie_data = find_movie_by_name(movie_title, df)
+        if movie_data is None:
             return []
         
-        # Trouver l'index du film
-        movie_idx = df[df['title_x'] == movie_title].index
-        if len(movie_idx) == 0:
-            return []
+        # Essayer d'abord le modèle KNN
+        if model is not None:
+            try:
+                # Préparer les features
+                features_matrix, feature_columns = prepare_features_for_knn(df)
+                if features_matrix is not None:
+                    # Obtenir l'index du film trouvé
+                    movie_idx = movie_data.name
+                    movie_features = features_matrix.iloc[movie_idx:movie_idx+1]
+                    
+                    # Utiliser le modèle KNN
+                    distances, indices = model.kneighbors(movie_features, n_neighbors=n_recommendations+1)
+                    recommended_indices = indices[0][1:]  # Exclure le film lui-même
+                    recommended_movies = df.iloc[recommended_indices]
+                    
+                    return recommended_movies.to_dict('records')
+            except Exception as knn_error:
+                st.warning("Le modèle KNN n'est pas compatible. Utilisation du système de recommandation alternatif.")
         
-        movie_idx = movie_idx[0]
+        # Utiliser le système de recommandation simple comme fallback
+        return get_simple_recommendations(movie_data, df, n_recommendations)
         
-        # Obtenir les features du film
-        movie_features = features_matrix.iloc[movie_idx:movie_idx+1]
-        
-        # Utiliser le modèle KNN pour trouver des films similaires
-        distances, indices = model.kneighbors(movie_features, n_neighbors=n_recommendations+1)
-        
-        # Exclure le film lui-même et retourner les recommandations
-        recommended_indices = indices[0][1:]
-        recommended_movies = df.iloc[recommended_indices]
-        
-        return recommended_movies.to_dict('records')
     except Exception as e:
         st.error(f"Erreur lors de la génération des recommandations: {e}")
         return []
@@ -699,12 +773,10 @@ elif page == "Recommandation":
         col1, col2 = st.columns([2, 1])
         
         with col1:
-            # Sélecteur de film
-            movie_titles = sorted(df_main['title_x'].tolist())
-            selected_movie = st.selectbox(
-                "Choisissez un film que vous avez aimé :",
-                movie_titles,
-                index=0
+            # Saisie libre du titre de film
+            selected_movie = st.text_input(
+                "Tapez le nom d'un film que vous avez aimé :",
+                placeholder="Ex: Kill Bill, Amélie, Léon..."
             )
         
         with col2:
@@ -715,39 +787,52 @@ elif page == "Recommandation":
                 value=6
             )
         
-        if st.button("🔍 Obtenir des recommandations", type="primary"):
+        # Afficher des suggestions si l'utilisateur tape
+        if selected_movie and len(selected_movie) >= 2:
+            suggestions = df_main[df_main['title_x'].str.lower().str.contains(selected_movie.lower(), na=False)]
+            if not suggestions.empty and len(suggestions) <= 10:
+                st.markdown("**Suggestions :**")
+                suggestion_titles = suggestions['title_x'].tolist()[:5]
+                for title in suggestion_titles:
+                    st.caption(f"• {title}")
+        
+        if st.button("🔍 Obtenir des recommandations", type="primary") and selected_movie:
             with st.spinner("Analyse en cours avec l'IA..."):
-                # Obtenir les recommandations avec le modèle KNN
-                recommendations = get_knn_recommendations(
-                    selected_movie, 
-                    df_main, 
-                    knn_model, 
-                    num_recommendations
-                )
+                # Vérifier si le film existe
+                found_movie = find_movie_by_name(selected_movie, df_main)
                 
-                if recommendations:
-                    st.success(f"Voici {len(recommendations)} films recommandés basés sur **{selected_movie}** :")
+                if found_movie is not None:
+                    # Obtenir les recommandations avec le modèle KNN
+                    recommendations = get_knn_recommendations(
+                        selected_movie, 
+                        df_main, 
+                        knn_model, 
+                        num_recommendations
+                    )
                     
-                    # Afficher le film sélectionné
-                    st.markdown("---")
-                    st.subheader("Film de référence")
-                    selected_movie_data = df_main[df_main['title_x'] == selected_movie].iloc[0]
-                    
-                    ref_col1, ref_col2 = st.columns([1, 3])
-                    with ref_col1:
-                        if pd.notna(selected_movie_data['poster_url']):
-                            st.image(selected_movie_data['poster_url'], width=150)
-                        else:
-                            st.markdown('<div style="height: 200px; width: 150px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">🎬</div>', unsafe_allow_html=True)
-                    
-                    with ref_col2:
-                        st.markdown(f"**{selected_movie_data['title_x']}**")
-                        st.markdown(f"**Note :** ⭐ {selected_movie_data['averageRating']:.1f}/10")
-                        st.markdown(f"**Année :** {int(selected_movie_data['year'])}")
-                        st.markdown(f"**Genres :** {selected_movie_data['genres_x']}")
-                        st.markdown(f"**Durée :** {int(selected_movie_data['runtime'])} min")
-                        if 'description' in selected_movie_data and pd.notna(selected_movie_data['description']):
-                            st.markdown(f"**Synopsis :** {selected_movie_data['description'][:200]}...")
+                    if recommendations:
+                        st.success(f"Voici {len(recommendations)} films recommandés basés sur **{found_movie['title_x']}** :")
+                        
+                        # Afficher le film sélectionné
+                        st.markdown("---")
+                        st.subheader("Film de référence")
+                        selected_movie_data = found_movie
+                        
+                        ref_col1, ref_col2 = st.columns([1, 3])
+                        with ref_col1:
+                            if pd.notna(selected_movie_data['poster_url']):
+                                st.image(selected_movie_data['poster_url'], width=150)
+                            else:
+                                st.markdown('<div style="height: 200px; width: 150px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">🎬</div>', unsafe_allow_html=True)
+                        
+                        with ref_col2:
+                            st.markdown(f"**{selected_movie_data['title_x']}**")
+                            st.markdown(f"**Note :** ⭐ {selected_movie_data['averageRating']:.1f}/10")
+                            st.markdown(f"**Année :** {int(selected_movie_data['year'])}")
+                            st.markdown(f"**Genres :** {selected_movie_data['genres_x']}")
+                            st.markdown(f"**Durée :** {int(selected_movie_data['runtimeMinutes'])} min")
+                            if 'description' in selected_movie_data and pd.notna(selected_movie_data['description']):
+                                st.markdown(f"**Synopsis :** {selected_movie_data['description'][:200]}...")
                     
                     # Afficher les recommandations
                     st.markdown("---")
