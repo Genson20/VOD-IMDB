@@ -833,10 +833,10 @@ elif page == "Recommandation":
                             st.markdown(f"**Durée :** {int(selected_movie_data['runtimeMinutes'])} min")
                             if 'description' in selected_movie_data and pd.notna(selected_movie_data['description']):
                                 st.markdown(f"**Synopsis :** {selected_movie_data['description'][:200]}...")
-                    
-                    # Afficher les recommandations
-                    st.markdown("---")
-                    st.subheader("Films similaires recommandés")
+                        
+                        # Afficher les recommandations
+                        st.markdown("---")
+                        st.subheader("Films similaires recommandés")
                     
                     # Organiser en grille
                     cols_per_row = 3
@@ -859,8 +859,11 @@ elif page == "Recommandation":
                                     if 'description' in movie and pd.notna(movie['description']):
                                         with st.expander("📖 Synopsis"):
                                             st.write(movie['description'])
+                    else:
+                        st.warning("Aucune recommandation n'a pu être générée.")
                 else:
-                    st.warning("Aucune recommandation trouvée pour ce film.")
+                    st.error(f"Film '{selected_movie}' non trouvé dans notre catalogue.")
+                    st.info("Astuce : Essayez de taper seulement une partie du titre ou vérifiez l'orthographe.")
         
         st.markdown("---")
         
